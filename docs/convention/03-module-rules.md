@@ -1,0 +1,139 @@
+# 모듈 연결 규칙
+
+> backend-template는 현재 도메인 모듈이 없는 스타터 상태다. 아래 규칙과 예시는 새 모듈을 추가할 때 따라야 할 패턴을 설명한다.
+
+## 모듈 분리 기준
+
+하나의 도메인 폴더 안에서도 모듈을 나눠야 할 때가 있다. 아래 기준으로 판단한다.
+
+### 분리가 필요한 신호
+
+- 서비스가 자기 모듈의 핵심 엔티티/서비스를 하나도 사용하지 않고, 외부 도메인만 조합(orchestrate)한다.
+- 한 서비스의 의존성 때문에 모듈이 불필요한 import를 많이 끌어온다.
+- 의존성 방향이 컨벤션에 맞지 않는다 (예: 플랫폼 모듈 → 업무 모듈).
+- 순환 참조가 발생하거나 `forwardRef`가 필요해진다.
+
+### 분리 방법
+
+- 같은 도메인 폴더 안에 별도 `*.module.ts`를 만든다. 파일을 물리적으로 이동할 필요는 없다.
+- orchestration 서비스와 그 서비스를 사용하는 controller를 새 모듈로 옮긴다.
+- 원래 모듈은 핵심 CRUD만 남긴다.
+- 상위 집계 모듈에서 새 모듈을 import한다.
+
+### 분리하지 않아도 되는 경우
+
+- 서비스가 자기 모듈의 핵심 엔티티를 사용하면서 외부 모듈도 참조하는 경우 (일반적인 의존).
+- 외부 import가 1~2개 수준으로 적은 경우.
+- orchestration이 아니라 단순 조회(read)만 하는 경우.
+
+### 예시: orchestration 분리
+
+```text
+order/
+  order.module.ts              ← 주문 CRUD
+  order-fulfillment.module.ts  ← 배송/결제 orchestration
+  service/
+    order.service.ts              ← OrderModule
+    order-fulfillment.service.ts  ← OrderFulfillmentModule
+  controller/
+    order.controller.ts               ← OrderModule
+    order.admin.controller.ts         ← OrderModule
+    order-fulfillment.controller.ts   ← OrderFulfillmentModule
+```
+
+- `OrderFulfillmentService`는 `OrderModule` 엔티티를 직접 사용하지 않고 `CatalogModule`, `PaymentModule`을 조합한다.
+- 분리 전에는 `OrderModule → CatalogModule` 의존이 생겨 의존 방향이 맞지 않았다.
+- 분리 후 `OrderModule`은 순수 CRUD 모듈로 남고, `OrderFulfillmentModule`이 orchestrator 역할을 담당한다.
+
+### 예시: 순환 참조 해소를 위한 양방향 분리
+
+분리 전 순환 구조:
+
+```text
+UserModule → ProfileModule (UserService가 ProfileService 사용)
+OrderModule → UserModule (OrderService가 UserService 사용)
+```
+
+분리 후:
+
+```text
+identity/user/
+  user.module.ts       ← 계정 CRUD (UserDataModule만 import)
+  user-admin.module.ts ← 관리자 관리 orchestration (ProfileModule import)
+
+order/
+  order.module.ts          ← 주문 CRUD (UserModule import 없음)
+  order-checkout.module.ts ← 결제 orchestration (UserModule import)
+```
+
+- 양쪽 모두 orchestration 서비스를 별도 모듈로 분리하면 순환이 사라진다.
+
+## DataModule 패턴
+
+여러 모듈이 같은 엔티티/레포지토리를 공유해야 할 때, 엔티티 등록과 기본 레포지토리만 담은 별도 DataModule을 만든다.
+
+```text
+<domain>/
+  <domain>-data.module.ts    ← 엔티티 + Repository (exports)
+  <domain>.module.ts         ← DataModule import + 서브모듈 집계
+```
+
+예시:
+
+```text
+catalog/
+  catalog-data.module.ts    ← Product, Category 엔티티 + Repository
+  catalog.module.ts         ← CatalogDataModule import + CatalogService
+```
+
+### 사용 기준
+
+- 외부 모듈이 엔티티 조회만 필요하면 → DataModule을 import한다.
+- 외부 모듈이 서비스 로직(생성/수정/삭제)도 필요하면 → 메인 모듈을 import한다.
+- DataModule은 순환 참조를 피하기 위한 패턴이다. 메인 모듈 간 직접 import가 가능하면 DataModule을 경유할 필요 없다.
+
+## 동기 vs 비동기 연결 선택
+
+orchestration 모듈이 외부 도메인 서비스를 직접 DI 받을 수 있으면 **동기 호출**(직접 메서드 호출)을 기본으로 한다. 같은 트랜잭션 안에서 실행되어야 하거나, 호출 결과를 즉시 사용해야 하는 경우 특히 그렇다.
+
+### 이벤트(비동기 연결)로 전환하는 기준
+
+- 호출하는 쪽 모듈이 대상 모듈을 import할 수 없는 경우 (순환 참조 방지).
+- 원본 write와 후속 작업이 서로 다른 트랜잭션 경계에서 실행되어도 무방한 경우.
+- 후속 작업의 실패가 원본 write를 롤백해서는 안 되는 경우.
+
+예시: `OrderCheckoutService.placeOrder()`가 `NotificationService`를 직접 호출해 알림을 발송한다. 두 모듈 모두 동일한 트랜잭션 경계에서 실행되어야 하기 때문이다.
+
+## 동기 연결
+
+- 다른 도메인의 기능이 필요하면 `Module imports`와 `exports`로 연결한다.
+- 필요한 provider만 export한다.
+- 다른 모듈 provider를 자기 모듈에 다시 등록하지 않는다.
+- 순환 참조를 피한다.
+
+예시:
+
+- `OrderModule`이 `CatalogModule`, `UserDataModule`을 import해서 주문에 필요한 엔티티와 서비스를 사용한다.
+- `OrderFulfillmentModule`이 `PaymentModule`, `ShippingModule`을 import해서 fulfillment orchestration을 수행한다.
+
+## 비동기 연결
+
+- 하위 도메인이나 다른 업무 도메인에 후속 처리가 필요할 때는 이벤트를 발행한다.
+- 현재 비즈니스 모듈은 주로 `EventEmitter2`를 직접 주입해서 이벤트를 발행한다.
+- 소비 측은 `@OnEvent(...)` 핸들러에서 처리한다.
+
+패턴 두 가지:
+
+1. **여러 도메인이 공유하는 안정적인 알림 이벤트**
+   - 위치: 소비하는 도메인 모듈의 `event/` 폴더 (예: `src/modules/notification/event/`)
+   - 발행하는 쪽은 소비 도메인의 event 파일을 import해서 emit한다.
+
+2. **특정 생산자/소비자 쌍에 묶인 로컬 이벤트**
+   - 소비자: `<domain>/handler/<event-name>.handler.ts`
+
+### 규칙
+
+- 원본 유스케이스의 핵심 write는 서비스에서 끝낸다.
+- 알림, 파생 동기화, SSE push 같은 후속 작업은 `handler/`로 분리한다.
+- 이벤트 payload는 소비하는 도메인의 `event/` 폴더에 둔다.
+- 일회성 내부 통합 이벤트는 과하게 공용화하지 않아도 된다.
