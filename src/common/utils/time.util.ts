@@ -5,18 +5,6 @@
  */
 
 /**
- * Duration 문자열을 초로 변환
- *
- * @param duration - '3h', '7d', '30m', '60s' 등의 형식
- * @returns 초 단위 시간
- *
- * @example
- * parseDurationToSeconds('7d')  // 604800
- * parseDurationToSeconds('3h')  // 10800
- * parseDurationToSeconds('30m') // 1800
- * parseDurationToSeconds('60s') // 60
- */
-/**
  * endAt 날짜를 해당 일자 말(23:59:59.999)로 정규화
  *
  * 날짜만 지정된 endAt(00:00:00)이 마지막 날을 제외하는 문제를 방지한다.
@@ -30,6 +18,18 @@ export function normalizeEndOfDay(date: Date): Date {
   return normalized;
 }
 
+/**
+ * Duration 문자열을 초로 변환
+ *
+ * @param duration - '3h', '7d', '30m', '60s' 등의 형식
+ * @returns 초 단위 시간
+ *
+ * @example
+ * parseDurationToSeconds('7d')  // 604800
+ * parseDurationToSeconds('3h')  // 10800
+ * parseDurationToSeconds('30m') // 1800
+ * parseDurationToSeconds('60s') // 60
+ */
 export function parseDurationToSeconds(duration: string): number {
   const match = duration.match(/^(\d+)([smhd])$/);
   if (!match) {

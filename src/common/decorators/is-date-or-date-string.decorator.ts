@@ -1,8 +1,6 @@
 import { Transform } from 'class-transformer';
 import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 
-import { FrameworkLogger } from '@/core/logger/framework-logger';
-
 /**
  * @description DTO에서 Date 객체 또는 Date 객체로 변환 가능한 문자열인지 확인하는 데코레이터
  */
@@ -14,11 +12,7 @@ export const IsDateOrDateString = (validationOptions?: ValidationOptions) => {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
-          const logger = new FrameworkLogger('IsDateOrDateString');
-          logger.debug(`value: ${value}`);
-          logger.debug(`args: ${args}`);
-
+        validate(value: any) {
           // Date 객체 또는 Date 객체로 변환 가능한 문자열인지 확인
           if (value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)))) return true;
           else return false;
