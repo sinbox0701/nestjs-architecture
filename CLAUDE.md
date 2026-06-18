@@ -31,6 +31,7 @@
 | `10-deployment.md`           | 환경 구분, 마이그레이션 관리, Baseline 전진/squash                                          |
 | `11-query-strategy.md`       | 3경로 쿼리 규칙, Load Strategy, 인덱스 원칙                                                 |
 | `12-api-design.md`           | REST URL/리소스 규칙, HTTP 메서드·상태코드, 설계 가드레일                                   |
+| `13-observability.md`        | 로깅/트레이싱(OTel)/요청 컨텍스트/전역 에러·응답 파이프라인                                 |
 
 ## 핵심 원칙 (DO/DON'T)
 
