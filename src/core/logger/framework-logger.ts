@@ -12,6 +12,17 @@ export class FrameworkLogger extends ConsoleLogger {
     fatal: 5,
   };
 
+  /**
+   * env LOG_LEVEL(debug|info|warn|error, env.schema 기준)을 NestJS LogLevel로 매핑.
+   * NestJS에는 'info'가 없으므로 'log'로 대응시킨다(미매핑 시 debug로 떨어지는 버그 방지).
+   */
+  protected static readonly ENV_LOG_LEVEL_MAP: Record<string, LogLevel> = {
+    debug: 'debug',
+    info: 'log',
+    warn: 'warn',
+    error: 'error',
+  };
+
   protected readonly logLevels: LogLevel[] = [];
 
   constructor(context?: string, options?: ConsoleLoggerOptions, prefix?: string) {
@@ -19,9 +30,8 @@ export class FrameworkLogger extends ConsoleLogger {
     options.prefix = prefix || process.env.APP_NAME || 'backend-template';
     super(context || '', options);
 
-    const logLevel = (process.env.LOG_LEVEL as LogLevel) ?? ('debug' as LogLevel);
-    const currentLogLevelValue =
-      FrameworkLogger.LOG_LEVEL_VALUES[logLevel] ?? FrameworkLogger.LOG_LEVEL_VALUES['debug'];
+    const logLevel = FrameworkLogger.ENV_LOG_LEVEL_MAP[process.env.LOG_LEVEL ?? 'debug'] ?? 'debug';
+    const currentLogLevelValue = FrameworkLogger.LOG_LEVEL_VALUES[logLevel];
     this.logLevels = (Object.keys(FrameworkLogger.LOG_LEVEL_VALUES) as LogLevel[]).filter(
       (level) => FrameworkLogger.LOG_LEVEL_VALUES[level] >= currentLogLevelValue,
     );

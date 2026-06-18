@@ -7,9 +7,13 @@ export class OrmLogger extends DefaultLogger {
       case 'info':
         Logger.verbose(message, namespace);
         return;
-      case 'warning':
-        Logger.warn(message, context.error, namespace);
+      case 'warning': {
+        // NestJS Logger.warn(message, ...optionalParams)는 마지막 string을 context로 취급한다.
+        // namespace를 context로 유지하기 위해 error는 메시지에 합쳐서 넘긴다.
+        const detail = context.error?.message;
+        Logger.warn(detail ? `${message} ${detail}` : message, namespace);
         return;
+      }
       case 'error':
         Logger.error(message, namespace);
         return;
