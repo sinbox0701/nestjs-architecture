@@ -46,6 +46,8 @@
     "seed": "ts-node -r tsconfig-paths/register src/lib/database/setup.ts",
     "mock:seed": "ts-node -r tsconfig-paths/register src/lib/database/setup-mock.ts",
     "docker:up": "docker compose up -d",
+    "docker:up:build": "docker compose up -d --build",
+    "docker:logs": "docker compose logs -f app",
     "docker:down": "docker compose down",
     "docker:clean": "docker compose down -v"
   },
