@@ -1,7 +1,7 @@
 ---
 name: scaffold
 description: 04-module-patterns.md 기반으로 새 모듈/서브도메인의 파일 뼈대를 자동 생성한다.
-argument-hint: "<module-path> [--pattern compact|role-folder]"
+argument-hint: '<module-path> [--pattern compact|role-folder]'
 ---
 
 지정된 경로에 컨벤션에 맞는 모듈 뼈대를 생성한다.
@@ -20,6 +20,7 @@ $ARGUMENTS 를 아래 규칙으로 해석한다.
 docs/convention/04-module-patterns.md 와 docs/convention/07-naming-and-style.md 를 읽는다.
 
 경로 분석:
+
 - /가 있으면 서브도메인 추가. 부모 모듈 존재 확인.
 - /가 없으면 새 독립 모듈. 이미 있으면 에러.
 

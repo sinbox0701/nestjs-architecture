@@ -19,11 +19,11 @@ backend-template는 **팀 스코프 RBAC + 리소스 소유권 ABAC**를 default
 
 ## 모델 개요 (3-Tier)
 
-| Tier | 위치 | 질문 | DB | 실패 시 |
-| ---- | ---- | ---- | --- | ------- |
-| **0 인증** | `AuthGuard` (`src/core/auth/`) | 토큰이 유효하고 강제로그아웃되지 않았나? | Redis (blocklist) | 401 |
-| **1 RBAC** | `PolicyGuard` + `@Requires` (`src/lib/access-control/`) | 이 팀에서 이 역할이 이 액션을 할 수 있나? | 없음 (JWT claim) | 403 |
-| **2 ABAC** | `ResourcePolicy<TEntity>` (service에서 호출) | 이 리소스가 그 팀 소유이고 actor가 권한이 있나? | 엔티티 로드 | 403 |
+| Tier       | 위치                                                    | 질문                                            | DB                | 실패 시 |
+| ---------- | ------------------------------------------------------- | ----------------------------------------------- | ----------------- | ------- |
+| **0 인증** | `AuthGuard` (`src/core/auth/`)                          | 토큰이 유효하고 강제로그아웃되지 않았나?        | Redis (blocklist) | 401     |
+| **1 RBAC** | `PolicyGuard` + `@Requires` (`src/lib/access-control/`) | 이 팀에서 이 역할이 이 액션을 할 수 있나?       | 없음 (JWT claim)  | 403     |
+| **2 ABAC** | `ResourcePolicy<TEntity>` (service에서 호출)            | 이 리소스가 그 팀 소유이고 actor가 권한이 있나? | 엔티티 로드       | 403     |
 
 가드 등록 순서(APP_GUARD): `AuthGuard`(인증) → `PolicyGuard`(인가). Tier2는 가드가 아니라 service 내부에서 호출한다(엔티티를 로드해야 하므로).
 
@@ -39,10 +39,10 @@ interface TeamMembership {
 
 interface AuthSubject {
   id: string | number; // JWT sub
-  jti: string;          // 강제 로그아웃 blocklist 키
+  jti: string; // 강제 로그아웃 blocklist 키
   globalRoles: GlobalRole[]; // 플랫폼 운영 역할 (SUPER = 전체 bypass)
-  teams: TeamMembership[];   // 팀별 역할
-  [key: string]: unknown;    // tenantId 등 도메인 확장
+  teams: TeamMembership[]; // 팀별 역할
+  [key: string]: unknown; // tenantId 등 도메인 확장
 }
 ```
 
@@ -55,9 +55,9 @@ JWT 페이로드 예시(발급은 도메인 로그인 단계):
   "globalRoles": [],
   "teams": [
     { "teamId": 1, "role": "OWNER" },
-    { "teamId": 3, "role": "MEMBER" }
+    { "teamId": 3, "role": "MEMBER" },
   ],
-  "exp": 1717891200
+  "exp": 1717891200,
 }
 ```
 
@@ -88,7 +88,13 @@ update() {}
 
 ```ts
 // 액션 (스타터 제공). 커스텀 문자열도 허용: 'order:cancel'
-enum Action { CREATE = 'create', READ = 'read', UPDATE = 'update', DELETE = 'delete', MANAGE = 'manage' }
+enum Action {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  MANAGE = 'manage',
+}
 // MANAGE = 와일드카드('*'): 모든 액션 허용
 
 // 매트릭스 공급자: 스타터는 인터페이스 + 코드 기본 구현 제공. 도메인이 DB 오버레이로 교체 가능.
@@ -106,7 +112,9 @@ Tier1은 "역할이 액션을 할 수 있나"만 본다. "이 **특정 리소스
 ```ts
 import { ResourcePolicy, TeamScoped, AuthSubject, Action } from '@/lib/access-control';
 
-interface TeamScoped { team: { id: number } } // 팀 소유 리소스가 만족해야 하는 형태
+interface TeamScoped {
+  team: { id: number };
+} // 팀 소유 리소스가 만족해야 하는 형태
 
 abstract class ResourcePolicy<TEntity extends TeamScoped> {
   abstract canCreate(actor: AuthSubject, ctx: { teamId: number }): boolean;
@@ -143,14 +151,14 @@ async update(actor: AuthSubject, id: number, dto: UpdateScenarioRequest) {
 
 ## 스타터 vs 도메인 책임
 
-| 스타터 `src/lib/access-control/` | 도메인 (`src/modules/`) |
-| -------------------------------- | ----------------------- |
-| `Action`, `GlobalRole`(SUPER bypass) | `Team`/`TeamMember` 엔티티 |
-| `AuthSubject`/`TeamMembership` 타입 | 팀 역할 enum(OWNER/MANAGER/MEMBER) |
-| `@Requires`, `@Public`, `@CurrentUser`, `PolicyGuard` | 역할×액션 매트릭스(코드 상수 또는 DB) |
-| `AccessPolicyProvider` 인터페이스 + 기본 구현 | 리소스별 `ResourcePolicy` 서브클래스 |
+| 스타터 `src/lib/access-control/`                       | 도메인 (`src/modules/`)                             |
+| ------------------------------------------------------ | --------------------------------------------------- |
+| `Action`, `GlobalRole`(SUPER bypass)                   | `Team`/`TeamMember` 엔티티                          |
+| `AuthSubject`/`TeamMembership` 타입                    | 팀 역할 enum(OWNER/MANAGER/MEMBER)                  |
+| `@Requires`, `@Public`, `@CurrentUser`, `PolicyGuard`  | 역할×액션 매트릭스(코드 상수 또는 DB)               |
+| `AccessPolicyProvider` 인터페이스 + 기본 구현          | 리소스별 `ResourcePolicy` 서브클래스                |
 | `ResourcePolicy<TEntity>` 베이스 + `TeamScoped` + 헬퍼 | 토큰 발급/리프레시, blocklist 등록(로그인/로그아웃) |
-| `AuthGuard`(인증 + blocklist 체크) | `team_members`/리소스 `team_id` FK 스키마 |
+| `AuthGuard`(인증 + blocklist 체크)                     | `team_members`/리소스 `team_id` FK 스키마           |
 
 ## 새 엔드포인트 체크리스트
 
@@ -162,12 +170,12 @@ async update(actor: AuthSubject, id: number, dto: UpdateScenarioRequest) {
 
 ## 현행 대비 마이그레이션 (Breaking)
 
-| 이전 | 이후 |
-| ---- | ---- |
-| `AuthSubject.roles: RoleCode[]` (전역) | `globalRoles[]` + `teams[{teamId, role}]` |
-| `@Roles(RoleCode.ADMIN)` | `@Requires(Action.UPDATE, 'resource')` |
-| `RolesGuard` ("역할 하나라도 일치") | `PolicyGuard` (팀역할×액션 매트릭스) |
-| `RoleCode`(USER/ADMIN/SUPER) | `GlobalRole`(SUPER 등) + 팀역할(도메인) |
+| 이전                                   | 이후                                             |
+| -------------------------------------- | ------------------------------------------------ |
+| `AuthSubject.roles: RoleCode[]` (전역) | `globalRoles[]` + `teams[{teamId, role}]`        |
+| `@Roles(RoleCode.ADMIN)`               | `@Requires(Action.UPDATE, 'resource')`           |
+| `RolesGuard` ("역할 하나라도 일치")    | `PolicyGuard` (팀역할×액션 매트릭스)             |
+| `RoleCode`(USER/ADMIN/SUPER)           | `GlobalRole`(SUPER 등) + 팀역할(도메인)          |
 | **default-allow** (@Roles 없으면 통과) | **default-deny** (@Requires/@Public 없으면 거부) |
 
 - `06` 외에 동기화 필요 문서: `CLAUDE.md`(핵심 원칙 #5), `12-api-design.md`(상태코드/접근제어 언급), `01-project-structure.md`(인증 데코레이터 목록). 엔진 구현과 함께 갱신한다.

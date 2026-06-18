@@ -35,21 +35,21 @@ import { EntityManager, FilterQuery } from '@mikro-orm/postgresql';
 
 ### 개발
 
-| 스크립트         | 용도                                      |
-| ---------------- | ----------------------------------------- |
-| `pnpm start:dev` | 로컬 개발 서버 (watch + type-check + SWC, 기동 전 `metadata` 자동 실행) |
-| `pnpm build`     | 프로덕션 빌드 (`nest build`, prebuild로 `metadata` 자동 실행) |
-| `pnpm typecheck` | 타입 체크만 (`tsc --noEmit`)              |
+| 스크립트         | 용도                                                                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `pnpm start:dev` | 로컬 개발 서버 (watch + type-check + SWC, 기동 전 `metadata` 자동 실행)                                    |
+| `pnpm build`     | 프로덕션 빌드 (`nest build`, prebuild로 `metadata` 자동 실행)                                              |
+| `pnpm typecheck` | 타입 체크만 (`tsc --noEmit`)                                                                               |
 | `pnpm metadata`  | Swagger OpenAPI 메타데이터 생성 (`src/metadata.ts`). JSDoc→Swagger 파이프라인. build/start:dev가 자동 호출 |
 
 ### 린트/포맷
 
-| 스크립트            | 용도                                            |
-| ------------------- | ----------------------------------------------- |
-| `pnpm lint`         | ESLint 실행 + 자동 수정 (`--fix`). 개발 중 사용 |
-| `pnpm lint:check`   | ESLint 실행 (수정 없음). CI에서 사용            |
-| `pnpm format`       | Prettier 포맷 적용                              |
-| `pnpm format:check` | Prettier 포맷 체크만                            |
+| 스크립트            | 용도                                                                    |
+| ------------------- | ----------------------------------------------------------------------- |
+| `pnpm lint`         | ESLint 실행 + 자동 수정 (`--fix`). 개발 중 사용                         |
+| `pnpm lint:check`   | ESLint 실행 (수정 없음). CI에서 사용                                    |
+| `pnpm format`       | Prettier 포맷 적용                                                      |
+| `pnpm format:check` | Prettier 포맷 체크만                                                    |
 | `pnpm dep:check`    | 모듈 경계 검사 (dependency-cruiser, `.dependency-cruiser.cjs`). CI 차단 |
 
 ### 테스트
@@ -62,12 +62,12 @@ import { EntityManager, FilterQuery } from '@mikro-orm/postgresql';
 
 ### 마이그레이션
 
-| 스크립트                | 용도                      |
-| ----------------------- | ------------------------- |
-| `pnpm migration:create` | 새 마이그레이션 파일 생성 |
-| `pnpm migration:up`     | 마이그레이션 적용         |
-| `pnpm migration:down`   | 마이그레이션 롤백         |
-| `pnpm migration:list`   | 마이그레이션 목록 확인    |
+| 스크립트                | 용도                                        |
+| ----------------------- | ------------------------------------------- |
+| `pnpm migration:create` | 새 마이그레이션 파일 생성                   |
+| `pnpm migration:up`     | 마이그레이션 적용                           |
+| `pnpm migration:down`   | 마이그레이션 롤백                           |
+| `pnpm migration:list`   | 마이그레이션 목록 확인                      |
 | `pnpm migration:verify` | 임시 DB로 pending 마이그레이션 dry-run 검증 |
 
 > 마이그레이션 테이블명: `backend_template_migrations`

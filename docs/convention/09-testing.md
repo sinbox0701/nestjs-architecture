@@ -24,31 +24,31 @@ backend-template의 테스트는 **단위(Unit)**, **통합(Integration)**, **E2
 
 테스트 코드 작성 전에 검증 대상(메서드/엔드포인트)에 대해 아래 카테고리를 훑어 **해당되는 케이스를 먼저 나열한 뒤** 코드를 작성한다. happy path만 검증하고 끝내지 않는다. 이 절차는 `/test` 커맨드뿐 아니라 "테스트 만들자/짜줘" 같은 자연어 요청에도 동일 적용한다.
 
-| #   | 카테고리         | 점검 질문                                                            |
-| --- | ---------------- | -------------------------------------------------------------------- |
-| 1   | Happy path       | 정상 입력 → 기대 결과                                                |
-| 2   | 입력 경계값      | null / undefined / 빈 문자열·배열 / 0 / 음수 / 최대 길이             |
-| 3   | 입력 형식 오류   | 잘못된 타입·형식 (DTO 검증은 E2E — service에서는 진입 후 분기에 집중)|
-| 4   | 권한             | 비로그인 / 다른 역할 / 본인 리소스 아님                              |
-| 5   | 상태 전이·멱등성 | 이미 처리됨 / 같은 입력 재실행 / 잘못된 상태에서 호출               |
-| 6   | 자기참조·관계    | oldValue === newValue / 존재하지 않는 FK / 고아 레코드             |
-| 7   | 외부 의존성 실패 | repo가 null/empty 반환 / DB 제약 위반 / 트랜잭션 롤백              |
-| 8   | Side effect 검증 | 호출돼야 하는 mock 호출 여부 + **호출되면 안 되는 경로의 미호출 검증**|
+| #   | 카테고리         | 점검 질문                                                              |
+| --- | ---------------- | ---------------------------------------------------------------------- |
+| 1   | Happy path       | 정상 입력 → 기대 결과                                                  |
+| 2   | 입력 경계값      | null / undefined / 빈 문자열·배열 / 0 / 음수 / 최대 길이               |
+| 3   | 입력 형식 오류   | 잘못된 타입·형식 (DTO 검증은 E2E — service에서는 진입 후 분기에 집중)  |
+| 4   | 권한             | 비로그인 / 다른 역할 / 본인 리소스 아님                                |
+| 5   | 상태 전이·멱등성 | 이미 처리됨 / 같은 입력 재실행 / 잘못된 상태에서 호출                  |
+| 6   | 자기참조·관계    | oldValue === newValue / 존재하지 않는 FK / 고아 레코드                 |
+| 7   | 외부 의존성 실패 | repo가 null/empty 반환 / DB 제약 위반 / 트랜잭션 롤백                  |
+| 8   | Side effect 검증 | 호출돼야 하는 mock 호출 여부 + **호출되면 안 되는 경로의 미호출 검증** |
 
 ---
 
 ## 테스트 타입 선택 기준
 
-| 상황                                                   | 권장 방식              |
-| ------------------------------------------------------ | ---------------------- |
-| Entity 생성/수정, 상태 전이, 도메인 규칙 위반 예외     | 단위 테스트 (mock)     |
-| Service 분기 로직, 조건부 호출 흐름, 이벤트 발행       | 단위 테스트 (mock)     |
-| Guard/Policy 권한 판단 로직                            | 단위 테스트 (mock)     |
-| MikroORM FilterQuery, soft delete, 날짜 조건 등        | 통합 테스트 (real DB)  |
-| Repository 쿼리 정확성 (필터, JOIN, 페이지네이션)      | 통합 테스트 (real DB)  |
-| 트랜잭션, cascade, unique 제약조건                     | 통합 테스트 (real DB)  |
-| DTO Validation Pipe, Auth Guard, RolesGuard 동작       | E2E 테스트 (supertest) |
-| API 응답 포맷 (`R.data`, `R.page` 구조)                | E2E 테스트 (supertest) |
+| 상황                                               | 권장 방식              |
+| -------------------------------------------------- | ---------------------- |
+| Entity 생성/수정, 상태 전이, 도메인 규칙 위반 예외 | 단위 테스트 (mock)     |
+| Service 분기 로직, 조건부 호출 흐름, 이벤트 발행   | 단위 테스트 (mock)     |
+| Guard/Policy 권한 판단 로직                        | 단위 테스트 (mock)     |
+| MikroORM FilterQuery, soft delete, 날짜 조건 등    | 통합 테스트 (real DB)  |
+| Repository 쿼리 정확성 (필터, JOIN, 페이지네이션)  | 통합 테스트 (real DB)  |
+| 트랜잭션, cascade, unique 제약조건                 | 통합 테스트 (real DB)  |
+| DTO Validation Pipe, Auth Guard, RolesGuard 동작   | E2E 테스트 (supertest) |
+| API 응답 포맷 (`R.data`, `R.page` 구조)            | E2E 테스트 (supertest) |
 
 ### 레이어별 중복 검증 방지
 
@@ -64,11 +64,11 @@ backend-template의 테스트는 **단위(Unit)**, **통합(Integration)**, **E2
 
 ### Jest 설정 파일 (3-tier)
 
-| 설정 파일                     | 대상        | testMatch                                            |
-| ----------------------------- | ----------- | ---------------------------------------------------- |
-| `package.json` → `jest`       | 단위 테스트 | `<rootDir>/tests/**/unit/**/*.spec.ts`               |
-| `tests/jest-integration.json` | 통합 테스트 | `<rootDir>/**/integration/**/*.integration.spec.ts`  |
-| `tests/jest-e2e.json`         | E2E 테스트  | `<rootDir>/**/*.e2e-spec.ts`                         |
+| 설정 파일                     | 대상        | testMatch                                           |
+| ----------------------------- | ----------- | --------------------------------------------------- |
+| `package.json` → `jest`       | 단위 테스트 | `<rootDir>/tests/**/unit/**/*.spec.ts`              |
+| `tests/jest-integration.json` | 통합 테스트 | `<rootDir>/**/integration/**/*.integration.spec.ts` |
+| `tests/jest-e2e.json`         | E2E 테스트  | `<rootDir>/**/*.e2e-spec.ts`                        |
 
 모든 설정은 `_utils/setup-test-env.ts`를 `setupFiles`로 로드해 `.env.test`를 주입하고, `@/` → `src/`, `@test-utils/` → `tests/_utils/` 모듈 별칭을 매핑한다.
 
@@ -259,10 +259,7 @@ await app.init();
 
 ```typescript
 // 진짜 E2E — supertest로 전체 파이프라인 검증
-await request(app.getHttpServer())
-  .post('/admin/notes')
-  .send({ title: '제목', content: '내용' })
-  .expect(201);
+await request(app.getHttpServer()).post('/admin/notes').send({ title: '제목', content: '내용' }).expect(201);
 ```
 
 ### 전체 앱 패턴 (예외적)
@@ -305,10 +302,10 @@ request(app).set('x-test-role', RoleCode.USER);
 
 ## 6. MikroORM v7 테스트 유의사항
 
-| 항목              | v6                                        | v7                                       |
-| ----------------- | ----------------------------------------- | ---------------------------------------- |
-| 테스트 트랜스포머 | `ts-jest`                                 | `@swc/jest`                              |
-| 스키마 동기화     | `orm.getSchemaGenerator().updateSchema()` | `orm.schema.updateSchema()`              |
-| 데이터 시드       | `em.persistAndFlush(entity)`              | `em.persist(entity); await em.flush()`   |
-| 데코레이터 import | `from '@mikro-orm/core'`                  | `from '@mikro-orm/decorators/legacy'`    |
-| `@Transactional`  | `NESTED` (savepoint)                      | `REQUIRED` (상위 트랜잭션 합류)          |
+| 항목              | v6                                        | v7                                     |
+| ----------------- | ----------------------------------------- | -------------------------------------- |
+| 테스트 트랜스포머 | `ts-jest`                                 | `@swc/jest`                            |
+| 스키마 동기화     | `orm.getSchemaGenerator().updateSchema()` | `orm.schema.updateSchema()`            |
+| 데이터 시드       | `em.persistAndFlush(entity)`              | `em.persist(entity); await em.flush()` |
+| 데코레이터 import | `from '@mikro-orm/core'`                  | `from '@mikro-orm/decorators/legacy'`  |
+| `@Transactional`  | `NESTED` (savepoint)                      | `REQUIRED` (상위 트랜잭션 합류)        |

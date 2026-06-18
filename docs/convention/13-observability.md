@@ -60,10 +60,10 @@
 
 ## 관련 환경 변수
 
-| 키 | 용도 |
-| --- | --- |
-| `OTEL_ENABLED` | OTel SDK 활성(기본 false). endpoint와 함께 있어야 동작 |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` / `_PROTOCOL` | OTLP collector 주소/프로토콜 |
-| `OTEL_SERVICE_NAME` / `OTEL_RESOURCE_ATTRIBUTES` | service.name 및 추가 리소스 속성 |
-| `LOG_LEVEL` | `debug`/`info`/`warn`/`error` (info는 Nest `log`으로 매핑) |
-| `RESPONSE_DEBUG_DETAIL` | 에러 응답에 stack/body 등 상세 포함(운영 false) |
+| 키                                               | 용도                                                       |
+| ------------------------------------------------ | ---------------------------------------------------------- |
+| `OTEL_ENABLED`                                   | OTel SDK 활성(기본 false). endpoint와 함께 있어야 동작     |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` / `_PROTOCOL`      | OTLP collector 주소/프로토콜                               |
+| `OTEL_SERVICE_NAME` / `OTEL_RESOURCE_ATTRIBUTES` | service.name 및 추가 리소스 속성                           |
+| `LOG_LEVEL`                                      | `debug`/`info`/`warn`/`error` (info는 Nest `log`으로 매핑) |
+| `RESPONSE_DEBUG_DETAIL`                          | 에러 응답에 stack/body 등 상세 포함(운영 false)            |

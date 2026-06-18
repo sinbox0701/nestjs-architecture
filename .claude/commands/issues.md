@@ -1,7 +1,7 @@
 ---
 name: issues
 description: 기술 스펙(.spec.md)을 읽고 Linear에 parent + sub 이슈 그래프를 생성한다.
-argument-hint: "<spec_path>"
+argument-hint: '<spec_path>'
 ---
 
 기술 스펙 파일을 기반으로 Linear 이슈를 자동 생성한다.
@@ -9,7 +9,8 @@ argument-hint: "<spec_path>"
 ## 인자
 
 $ARGUMENTS의 첫 번째 토큰을 스펙 파일 경로로 사용한다.
-- 경로가 없으면: docs/prd/ 아래 *.spec.md 파일 목록을 보여주고 선택받는다.
+
+- 경로가 없으면: docs/prd/ 아래 \*.spec.md 파일 목록을 보여주고 선택받는다.
 - .spec.md가 아닌 파일이면: 스펙 파일을 지정해주세요. 출력 후 종료.
 
 ## 0. 사전 검증
@@ -37,13 +38,13 @@ Enabler: 컴포넌트 섹션에서 실제 기술된 컴포넌트만 sub 생성
 
 ### 2.1 Feature 분배 규칙
 
-| 레이어 | 테스트 타입 | 매핑 기준 |
-| ------ | ----------- | --------- |
-| Data | 단위 | 엔티티 상태 전이, 필드 검증 |
-| Data | 통합 | repository 쿼리, FK 정합성 |
-| Service | 단위 | 비즈니스 규칙, 이벤트 발행 |
-| Service | 통합 | 트랜잭션 원자성 |
-| API | e2e | endpoint 요청/응답, 인증/인가 |
+| 레이어  | 테스트 타입 | 매핑 기준                     |
+| ------- | ----------- | ----------------------------- |
+| Data    | 단위        | 엔티티 상태 전이, 필드 검증   |
+| Data    | 통합        | repository 쿼리, FK 정합성    |
+| Service | 단위        | 비즈니스 규칙, 이벤트 발행    |
+| Service | 통합        | 트랜잭션 원자성               |
+| API     | e2e         | endpoint 요청/응답, 인증/인가 |
 
 ### 2.2 Enabler 분배 규칙
 

@@ -25,13 +25,13 @@ git status --short / git diff --name-only / git diff --cached --name-only
 
 각 변경 파일에 대해 실제 diff를 확인하고 논리적 그룹을 분류한다:
 
-| 우선순위 | 그룹 기준 | 예시 |
-| -------- | --------- | ---- |
-| 1 | 같은 기능의 핵심 로직 (entity, service, type) | 이벤트 타입 + 엔티티 + 서비스 |
-| 2 | 같은 기능의 노출 레이어 (DTO, controller) | DTO + controller |
-| 3 | 인프라/설정 변경 (migration, config) | migration 파일 |
-| 4 | 테스트 | 테스트 파일 |
-| 5 | 문서 | docs, README |
+| 우선순위 | 그룹 기준                                     | 예시                          |
+| -------- | --------------------------------------------- | ----------------------------- |
+| 1        | 같은 기능의 핵심 로직 (entity, service, type) | 이벤트 타입 + 엔티티 + 서비스 |
+| 2        | 같은 기능의 노출 레이어 (DTO, controller)     | DTO + controller              |
+| 3        | 인프라/설정 변경 (migration, config)          | migration 파일                |
+| 4        | 테스트                                        | 테스트 파일                   |
+| 5        | 문서                                          | docs, README                  |
 
 ### 3단계: 커밋 메시지 작성 규칙
 

@@ -1,7 +1,7 @@
 ---
 name: mock-seed
 description: 데브서버용 mock 데이터 시더를 생성한다. `.data.ts`(원하는 데이터 선언) + `.seed.ts`(삽입 로직)로 분리하며, anchor 데이터는 손으로 선언하고 filler만 faker로 채운다.
-argument-hint: "<domain> [fillerCount] [--fresh] — 예: /mock-seed user 50"
+argument-hint: '<domain> [fillerCount] [--fresh] — 예: /mock-seed user 50'
 ---
 
 데브 서버를 채우기 위한 mock 시더를 생성한다.
@@ -37,11 +37,13 @@ $ARGUMENTS 를 아래 규칙으로 해석한다.
 도메인당 두 파일을 만든다(camp `.data.ts`/`.seed.ts` 컨벤션).
 
 ### 1. `src/lib/database/seed/mock/<domain>.data.ts` — 데이터 선언(사용자 통제 surface)
+
 - 타입 인터페이스 + **ANCHOR 배열**: 사용자가 준 정확한 값을 그대로 박는다. **여기엔 faker를 절대 쓰지 않는다.**
 - filler 설정(개수 등)을 상수로 노출해 사용자가 쉽게 조정하게 한다.
 - 파일 상단 주석: "이 파일을 편집해 원하는 데이터를 바꾸세요. anchor는 결정적, filler는 faker."
 
 ### 2. `src/lib/database/seed/mock/<domain>.seed.ts` — 삽입 로직
+
 - MikroORM `Seeder` 또는 `withOrm` 콜백으로 구현. EntityManager는 `@mikro-orm/postgresql`에서 import.
 - 순서: **anchor 먼저 → filler(faker) 다음**.
 - **관계는 부모 시더 먼저** 실행되도록 등록 순서를 잡는다. 부모는 ref로 연결.
@@ -50,6 +52,7 @@ $ARGUMENTS 를 아래 규칙으로 해석한다.
 - enum/nullable/unique 제약을 준수한다.
 
 ### 3. `setup-mock.ts`에 등록
+
 - 새 시더를 호출 순서(부모→자식)에 맞게 wiring 한다. prod 가드는 이미 있으므로 유지한다.
 
 ## 규칙

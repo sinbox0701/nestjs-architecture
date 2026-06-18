@@ -36,42 +36,42 @@ DELETE /orders/:id      주문 삭제
 
 ## 2. URL 규칙
 
-| 규칙 | ✅ | ❌ |
-| ---- | -- | -- |
-| kebab-case + 복수형 | `/order-items` | `/orderItems`, `/orderItem` |
-| URL에 동사 금지 | `POST /orders` | `POST /orders/create`, `/createOrder` |
-| 중첩 1단계까지 | `/orders/:id/items` | `/users/:uid/orders/:oid/items` |
+| 규칙                        | ✅                                   | ❌                                    |
+| --------------------------- | ------------------------------------ | ------------------------------------- |
+| kebab-case + 복수형         | `/order-items`                       | `/orderItems`, `/orderItem`           |
+| URL에 동사 금지             | `POST /orders`                       | `POST /orders/create`, `/createOrder` |
+| 중첩 1단계까지              | `/orders/:id/items`                  | `/users/:uid/orders/:oid/items`       |
 | 식별자는 path, 필터는 query | `/orders/:id`, `/orders?status=paid` | `/orders?id=1`, `/orders/status/paid` |
-| 약어보다 전체 단어 | `/notifications` | `/notis` |
+| 약어보다 전체 단어          | `/notifications`                     | `/notis`                              |
 
 - **중첩 2단계 이상이 필요하면 평탄화한다**: 하위 리소스를 최상위로 올리고 쿼리로 필터. `GET /order-items?orderId=:id`.
 - **상태전이/비-CRUD 액션은 명시적 동사 하위 경로로 허용한다** (드물게): `POST /orders/:id/cancel`, `POST /orders/:id/restore`, `POST /auth/login`. 단 CRUD로 표현 가능한 건 동사 액션으로 만들지 않는다.
 
 ## 3. HTTP 메서드 ↔ 컨트롤러 매핑
 
-| 메서드 | 의미 | 멱등성 | 컨트롤러 메서드명 | 상태코드 |
-| ------ | ---- | ------ | ----------------- | -------- |
-| POST   | 생성 / 비-CRUD 액션 | ✗ | `create`, `cancel`, `login` | 201 (생성) / 200 (액션) |
-| GET    | 조회 | ✓ | `getList`, `getDetail`, `getMine` | 200 |
-| PATCH  | 부분 수정 | ✗ | `update`, `changeStatus` | 200 |
-| PUT    | 전체 교체 (드묾, 보통 PATCH 선호) | ✓ | `replace` | 200 |
-| DELETE | 삭제 | ✓ | `delete`, `deleteList` | 204 |
+| 메서드 | 의미                              | 멱등성 | 컨트롤러 메서드명                 | 상태코드                |
+| ------ | --------------------------------- | ------ | --------------------------------- | ----------------------- |
+| POST   | 생성 / 비-CRUD 액션               | ✗      | `create`, `cancel`, `login`       | 201 (생성) / 200 (액션) |
+| GET    | 조회                              | ✓      | `getList`, `getDetail`, `getMine` | 200                     |
+| PATCH  | 부분 수정                         | ✗      | `update`, `changeStatus`          | 200                     |
+| PUT    | 전체 교체 (드묾, 보통 PATCH 선호) | ✓      | `replace`                         | 200                     |
+| DELETE | 삭제                              | ✓      | `delete`, `deleteList`            | 204                     |
 
 - 부분 수정은 **PATCH가 기본**. PUT(전체 교체)은 클라이언트가 전체 표현을 보낼 때만.
 - 메서드명 규칙 상세는 [07-naming-and-style.md](07-naming-and-style.md#controller-method명).
 
 ## 4. 상태코드 표준
 
-| 코드 | 상황 |
-| ---- | ---- |
-| 200 OK | 조회·수정·액션 성공 (본문 있음) |
-| 201 Created | 리소스 생성 성공 (`@Post`) — Swagger 응답도 `@ApiDataResponse(Data, 201)`로 명시 |
-| 204 No Content | 삭제 등 본문 없는 성공 |
-| 400 Bad Request | DTO 검증 실패 (class-validator) |
-| 401 Unauthorized | 인증 누락/실패 (AuthGuard) |
-| 403 Forbidden | 인증됐으나 권한 부족 (PolicyGuard/`@Requires` 또는 ResourcePolicy) |
-| 404 Not Found | 리소스 없음 — service의 `getBy...`가 예외 팩토리로 변환 |
-| 409 Conflict | 상태 충돌 (중복 생성, 잘못된 상태전이) |
+| 코드             | 상황                                                                             |
+| ---------------- | -------------------------------------------------------------------------------- |
+| 200 OK           | 조회·수정·액션 성공 (본문 있음)                                                  |
+| 201 Created      | 리소스 생성 성공 (`@Post`) — Swagger 응답도 `@ApiDataResponse(Data, 201)`로 명시 |
+| 204 No Content   | 삭제 등 본문 없는 성공                                                           |
+| 400 Bad Request  | DTO 검증 실패 (class-validator)                                                  |
+| 401 Unauthorized | 인증 누락/실패 (AuthGuard)                                                       |
+| 403 Forbidden    | 인증됐으나 권한 부족 (PolicyGuard/`@Requires` 또는 ResourcePolicy)               |
+| 404 Not Found    | 리소스 없음 — service의 `getBy...`가 예외 팩토리로 변환                          |
+| 409 Conflict     | 상태 충돌 (중복 생성, 잘못된 상태전이)                                           |
 
 - 예외는 **인라인 금지**, 도메인 `exception/` 팩토리 상수를 던진다 (`05-layer-responsibility.md`). 성공 응답은 `R.*` envelope.
 
@@ -89,7 +89,7 @@ GET /orders?status=paid&q=노트북&sortBy=createdAt&sortOrder=DESC&pageNum=1&pa
 SWC 빌드에서는 `pnpm metadata`가 JSDoc을 OpenAPI로 변환한다 (배선: [CLAUDE.md "Swagger / API 문서"](../../CLAUDE.md)). FE가 "딱 보고 이 API구나"를 알려면:
 
 ```typescript
-@ApiTags('orders')              // orval 파일 분리 단위 (orders.ts)
+@ApiTags('orders') // orval 파일 분리 단위 (orders.ts)
 @Controller('orders')
 export class OrderController {
   /**
@@ -98,8 +98,8 @@ export class OrderController {
    * 상태·기간으로 필터링하며 offset 페이지네이션을 사용한다.   ← 본문 = description
    */
   @Get()
-  @ApiDataResponse(OrderListData)   // 응답 타입 명시 → orval 반환 타입 확정
-  getList(@Query() query: GetOrderListRequest) {}   // 짧은 메서드명 → orderControllerGetList()
+  @ApiDataResponse(OrderListData) // 응답 타입 명시 → orval 반환 타입 확정
+  getList(@Query() query: GetOrderListRequest) {} // 짧은 메서드명 → orderControllerGetList()
 }
 ```
 
@@ -109,10 +109,10 @@ export class OrderData {
   id!: string;
 
   /** 주문 상태 @example "paid" */
-  status!: OrderStatus;   // bare union 금지, enum 필수 ([07](07-naming-and-style.md))
+  status!: OrderStatus; // bare union 금지, enum 필수 ([07](07-naming-and-style.md))
 
   /** 쿠폰 코드. 미적용 시 응답에서 키 자체가 빠진다. */
-  couponCode?: string;    // `| null` 금지, optional만
+  couponCode?: string; // `| null` 금지, optional만
 }
 ```
 

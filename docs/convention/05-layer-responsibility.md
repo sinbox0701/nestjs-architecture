@@ -50,9 +50,9 @@
 ```typescript
 // 분리 전: OrderService에 CRUD + 복잡한 조회 로직이 혼재
 // 분리 후:
-OrderWriteService    // 생성, 수정, 삭제, 상태 변경
-OrderReadService     // 목록 조회, 필터, 접근 제어
-OrderDetailService   // 단건 상세 조회, 하위 항목 계층 조립
+OrderWriteService; // 생성, 수정, 삭제, 상태 변경
+OrderReadService; // 목록 조회, 필터, 접근 제어
+OrderDetailService; // 단건 상세 조회, 하위 항목 계층 조립
 ```
 
 **분리 기준**: 조회 메서드가 5개 이상이거나, 조회에 권한 판단 같은 복합 로직이 들어갈 때.
@@ -66,8 +66,12 @@ OrderDetailService   // 단건 상세 조회, 하위 항목 계층 조립
 // note.policy.ts — 팀 소유권 등 엔티티 단위 규칙은 ResourcePolicy를 상속한다 (06-access-control.md)
 @Injectable()
 export class NotePolicy extends ResourcePolicy<Note> {
-  canUpdate(actor: AuthSubject, note: Note): boolean { return this.isTeamMember(actor, note); }
-  canDelete(actor: AuthSubject, note: Note): boolean { return this.isTeamOwner(actor, note); }
+  canUpdate(actor: AuthSubject, note: Note): boolean {
+    return this.isTeamMember(actor, note);
+  }
+  canDelete(actor: AuthSubject, note: Note): boolean {
+    return this.isTeamOwner(actor, note);
+  }
 }
 ```
 

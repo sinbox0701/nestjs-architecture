@@ -14,8 +14,14 @@ process.stdin.on('end', () => {
   }
 
   const dangers = [
-    { re: /\bgit\s+push\b[^\n]*(--force\b|--force-with-lease\b|\s-f\b)/, msg: 'force push 차단 — 원격 히스토리 덮어쓰기 위험. 필요하면 직접 실행하세요.' },
-    { re: /\bdrop\s+(table|database|schema)\b/i, msg: 'DROP TABLE/DATABASE/SCHEMA 차단 — 스키마 변경은 마이그레이션으로 처리하세요.' },
+    {
+      re: /\bgit\s+push\b[^\n]*(--force\b|--force-with-lease\b|\s-f\b)/,
+      msg: 'force push 차단 — 원격 히스토리 덮어쓰기 위험. 필요하면 직접 실행하세요.',
+    },
+    {
+      re: /\bdrop\s+(table|database|schema)\b/i,
+      msg: 'DROP TABLE/DATABASE/SCHEMA 차단 — 스키마 변경은 마이그레이션으로 처리하세요.',
+    },
     { re: /\bgit\s+reset\s+--hard\b/, msg: 'git reset --hard 차단 — 작업 손실 위험. 정말 버릴 거면 직접 실행하세요.' },
     { re: /\brm\s+-[a-z]*r[a-z]*f?[a-z]*\s+(\/|~|\$HOME)(\s|\/|$)/, msg: 'rm -rf 루트/홈 차단.' },
   ];

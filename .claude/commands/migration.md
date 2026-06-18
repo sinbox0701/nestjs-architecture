@@ -1,7 +1,7 @@
 ---
 name: migration
 description: 현재 브랜치의 엔티티 변경사항을 분석하여 migration 파일을 생성한다.
-argument-hint: "[base-branch]"
+argument-hint: '[base-branch]'
 ---
 
 현재 브랜치에서 변경된 엔티티를 분석하여 migration 파일을 생성한다.
@@ -15,21 +15,21 @@ argument-hint: "[base-branch]"
 
 ### 1단계: 변경된 엔티티 파일 수집
 
-git diff <base-branch>...HEAD --name-only -- *.entity.ts
+git diff <base-branch>...HEAD --name-only -- \*.entity.ts
 
 변경된 엔티티 파일이 없으면 DB 변경사항이 없습니다. 를 출력하고 종료한다.
 
 ### 2단계: 엔티티 diff 분석
 
-| 변경 유형 | 감지 방법 |
-| --------- | --------- |
-| 컬럼 추가 | @Property(), @Enum() 데코레이터 붙은 새 필드 추가 |
-| 컬럼 삭제 | 기존 필드 제거 |
-| 컬럼 타입 변경 | @Property({ type: ... }) type 변경 |
-| nullable 변경 | nullable: true/false 변경 |
-| 새 엔티티 | 파일 신규 (CREATE TABLE) |
-| 엔티티 삭제 | 파일 삭제 (DROP TABLE) |
-| 인덱스 변경 | @Index(), @Unique() 변경 |
+| 변경 유형      | 감지 방법                                         |
+| -------------- | ------------------------------------------------- |
+| 컬럼 추가      | @Property(), @Enum() 데코레이터 붙은 새 필드 추가 |
+| 컬럼 삭제      | 기존 필드 제거                                    |
+| 컬럼 타입 변경 | @Property({ type: ... }) type 변경                |
+| nullable 변경  | nullable: true/false 변경                         |
+| 새 엔티티      | 파일 신규 (CREATE TABLE)                          |
+| 엔티티 삭제    | 파일 삭제 (DROP TABLE)                            |
+| 인덱스 변경    | @Index(), @Unique() 변경                          |
 
 ### 3단계: SQL 생성 규칙
 
@@ -48,12 +48,12 @@ migrations/ 에서 중복 확인. 파일명 타임스탬프 겹치지 않도록 
 
 ### 5단계: migration 파일 생성
 
-파일명: Migration{YYYYMMDD}{HHmmss}_{변경_요약}.ts
+파일명: Migration{YYYYMMDD}{HHmmss}*{변경*요약}.ts
 
 import { Migration } from @mikro-orm/migrations;
 export class MigrationXXX extends Migration {
-  up(): void { this.addSql(SQL); }
-  down(): void { this.addSql(역방향SQL); }
+up(): void { this.addSql(SQL); }
+down(): void { this.addSql(역방향SQL); }
 }
 
 SQL 규칙: 테이블명/컬럼명 쌍따옴표. up()/down() 항상 쌍.
@@ -73,7 +73,7 @@ SQL 규칙: 테이블명/컬럼명 쌍따옴표. up()/down() 항상 쌍.
 
 ## 출력
 
-생성된 migration: migrations/Migration{타임스탬프}_{요약}.ts
+생성된 migration: migrations/Migration{타임스탬프}\_{요약}.ts
 변경 내용 표 + SQL 미리보기
 
 ## 규칙

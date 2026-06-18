@@ -1,7 +1,7 @@
 ---
 name: fe-changes
 description: BE 변경이 FE(Orval 코드젠)에 미치는 영향을 카테고리별 테이블로 분석한다.
-argument-hint: "[base-branch]"
+argument-hint: '[base-branch]'
 ---
 
 현재 브랜치의 BE 변경이 FE에 미치는 영향을 분석하여 카테고리별 테이블로 출력한다.
@@ -21,15 +21,15 @@ FE 레포 경로와 Orval 실행 커맨드는 프로젝트마다 다르다.
 
 git diff <base-branch>...HEAD --name-only
 
-| 분류 | 파일 패턴 |
-| ---- | --------- |
-| Controller | *.controller.ts, *.admin.controller.ts |
-| DTO | *.dto.ts, *.request.ts, *.response.ts |
-| Entity | *.entity.ts |
-| Enum/Type | *.enum.ts, *.type.ts, *.constant.ts |
-| Exception | *.exception.ts, exception/*.ts |
-| Event | *.event.ts, *.handler.ts (SSE/WebSocket 관련) |
-| Access Control | *role*, *guard* |
+| 분류           | 파일 패턴                                     |
+| -------------- | --------------------------------------------- |
+| Controller     | _.controller.ts, _.admin.controller.ts        |
+| DTO            | _.dto.ts, _.request.ts, \*.response.ts        |
+| Entity         | \*.entity.ts                                  |
+| Enum/Type      | _.enum.ts, _.type.ts, \*.constant.ts          |
+| Exception      | _.exception.ts, exception/_.ts                |
+| Event          | _.event.ts, _.handler.ts (SSE/WebSocket 관련) |
+| Access Control | _role_, _guard_                               |
 
 ## 2. 카테고리별 분석
 
@@ -65,16 +65,16 @@ SSE/WebSocket 관련 파일 변경 시만: 이벤트 타입명, payload 구조, 
 
 ## 3. Breaking 판정
 
-| Breaking | Non-breaking |
-| -------- | ------------ |
-| 필드 삭제 | optional 필드 추가 |
-| 필드 타입 변경 | 새 endpoint 추가 |
-| DTO 클래스명 변경 | 새 enum 값 추가 |
-| enum 값 삭제/변경 | 새 에러 코드 추가 |
-| 에러 코드 문자열 변경 | |
-| 응답 래퍼 변경 | |
-| HTTP 상태 코드 변경 | |
-| @Public() 제거 | @Public() 추가 |
+| Breaking              | Non-breaking       |
+| --------------------- | ------------------ |
+| 필드 삭제             | optional 필드 추가 |
+| 필드 타입 변경        | 새 endpoint 추가   |
+| DTO 클래스명 변경     | 새 enum 값 추가    |
+| enum 값 삭제/변경     | 새 에러 코드 추가  |
+| 에러 코드 문자열 변경 |                    |
+| 응답 래퍼 변경        |                    |
+| HTTP 상태 코드 변경   |                    |
+| @Public() 제거        | @Public() 추가     |
 
 ## 4. 출력
 

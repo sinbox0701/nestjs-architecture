@@ -16,8 +16,7 @@
 
 [] `XxxRequestDto`
 
-- 검증 규칙:
-  -
+- ## 검증 규칙:
 
 ### Response DTO
 

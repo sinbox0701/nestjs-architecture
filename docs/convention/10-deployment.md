@@ -2,11 +2,11 @@
 
 ## 환경 구분
 
-| 환경      | APP_ENV | NODE_ENV      | 용도                       | DB 스키마 관리   |
-| --------- | ------- | ------------- | -------------------------- | ---------------- |
-| 로컬 개발 | `dev`   | `development` | 개발자 워크스테이션        | 엔티티 auto-sync |
-| 스테이징  | `stage` | `production`  | 통합테스트 / QA            | migration guard  |
-| 프로덕션  | `prod`  | `production`  | 프로덕션                   | migration guard  |
+| 환경      | APP_ENV | NODE_ENV      | 용도                | DB 스키마 관리   |
+| --------- | ------- | ------------- | ------------------- | ---------------- |
+| 로컬 개발 | `dev`   | `development` | 개발자 워크스테이션 | 엔티티 auto-sync |
+| 스테이징  | `stage` | `production`  | 통합테스트 / QA     | migration guard  |
+| 프로덕션  | `prod`  | `production`  | 프로덕션            | migration guard  |
 
 `NODE_ENV`는 `APP_ENV`에서 유도된다 (dev→development, stage/prod→production).
 
@@ -74,13 +74,13 @@ PR이 머지되면 배포 파이프라인이 마이그레이션을 실행한 뒤
 
 ## 마이그레이션 규칙
 
-| 규칙                         | 이유                                                    |
-| ---------------------------- | ------------------------------------------------------- |
-| migration 파일은 PR에 포함   | stage/prod에서 엔티티만 바뀌면 앱 시작 실패             |
-| 실행된 migration은 수정 금지 | 이미 적용된 SQL을 바꾸면 환경 간 불일치 발생            |
-| rollback은 새 migration으로  | down migration 대신 새 up migration으로 되돌림          |
-| 생성된 SQL은 반드시 검수     | 자동 생성 SQL이 의도와 다를 수 있음                     |
-| **Idempotent SQL 사용**      | fresh DB와 기존 DB 모두에서 안전하게 실행되어야 함      |
+| 규칙                         | 이유                                               |
+| ---------------------------- | -------------------------------------------------- |
+| migration 파일은 PR에 포함   | stage/prod에서 엔티티만 바뀌면 앱 시작 실패        |
+| 실행된 migration은 수정 금지 | 이미 적용된 SQL을 바꾸면 환경 간 불일치 발생       |
+| rollback은 새 migration으로  | down migration 대신 새 up migration으로 되돌림     |
+| 생성된 SQL은 반드시 검수     | 자동 생성 SQL이 의도와 다를 수 있음                |
+| **Idempotent SQL 사용**      | fresh DB와 기존 DB 모두에서 안전하게 실행되어야 함 |
 
 ### Idempotent Migration 규칙
 

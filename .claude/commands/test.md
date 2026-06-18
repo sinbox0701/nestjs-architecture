@@ -1,19 +1,19 @@
 ---
 name: test
 description: 09-testing.md 컨벤션 기반으로 테스트 코드를 작성/보완한다.
-argument-hint: "<BE-XXX | spec_path | test_type module-name>"
+argument-hint: '<BE-XXX | spec_path | test_type module-name>'
 ---
 
 테스트 코드를 작성하거나 보완한다. docs/convention/09-testing.md 컨벤션 기반.
 
 ## 인자 해석
 
-| 입력 | 모드 | 동작 |
-| ---- | ---- | ---- |
-| BE-302 | 이슈 모드 | Linear 이슈 완료 조건 → 테스트 체크리스트 |
-| docs/prd/xxx.spec.md | 스펙 모드 | 스펙 검증 조건 → 테스트 체크리스트 |
-| unit order | 컨벤션 모드 | convention만 |
-| all note | 컨벤션 모드 | convention만 |
+| 입력                 | 모드        | 동작                                      |
+| -------------------- | ----------- | ----------------------------------------- |
+| BE-302               | 이슈 모드   | Linear 이슈 완료 조건 → 테스트 체크리스트 |
+| docs/prd/xxx.spec.md | 스펙 모드   | 스펙 검증 조건 → 테스트 체크리스트        |
+| unit order           | 컨벤션 모드 | convention만                              |
+| all note             | 컨벤션 모드 | convention만                              |
 
 이슈 모드: Linear MCP로 이슈 읽기 → 완료 조건/대상 모듈 파악 → 테스트 작성.
 스펙 모드: 검증 조건 전체 추출 → 레이어/타입별 분류 → unit → integration → e2e 순서.
@@ -45,6 +45,7 @@ function buildMockFooRepo(overrides = {}): MockFooRepo { return { findById: jest
 위치: tests/<module-name>/integration/<feature>.integration.spec.ts
 
 필수 패턴:
+
 - beforeAll: 모듈 생성 + syncTestSchema(orm)
 - afterAll: orm.close()
 - beforeEach: truncateTestTables(em) + seedTestRoles(em)

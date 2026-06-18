@@ -97,14 +97,14 @@ pnpm docker:clean   # 볼륨까지 정리
 
 ## 스크립트 요약
 
-| 명령                | 설명                                   |
-| ------------------- | -------------------------------------- |
-| `pnpm start:dev`    | 로컬 watch 실행 (SWC + type-check)     |
-| `pnpm start:prod`   | production 런타임 실행 (dist)          |
-| `pnpm migration:up` | 마이그레이션 적용                      |
+| 명령                    | 설명                                                             |
+| ----------------------- | ---------------------------------------------------------------- |
+| `pnpm start:dev`        | 로컬 watch 실행 (SWC + type-check)                               |
+| `pnpm start:prod`       | production 런타임 실행 (dist)                                    |
+| `pnpm migration:up`     | 마이그레이션 적용                                                |
 | `pnpm migration:verify` | 로컬 임시 DB로 pending 마이그레이션 dry-run (`10-deployment.md`) |
-| `pnpm seed`         | 시드 데이터 (개발 전용)                |
-| `pnpm docker:up`    | 로컬 postgres + redis 기동             |
+| `pnpm seed`             | 시드 데이터 (개발 전용)                                          |
+| `pnpm docker:up`        | 로컬 postgres + redis 기동                                       |
 
 ## 환경별 권장값 예시
 

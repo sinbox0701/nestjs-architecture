@@ -108,10 +108,10 @@ class StatusData {
 
 ### 레이어별 메서드명 요약
 
-| 레이어     | 규칙                                                  | 예                                                              |
-| ---------- | ----------------------------------------------------- | --------------------------------------------------------------- |
-| Controller | path scope 안 행위만, 도메인명 반복 X                 | `create`, `getList`, `getDetail`, `update`, `delete`            |
-| Service    | `행위 + 대상`(유스케이스 동사), 도메인명 포함         | `createOrder`, `getOrder`(예외), `getOrderList`, `changeOrderStatus` |
+| 레이어     | 규칙                                                    | 예                                                                         |
+| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Controller | path scope 안 행위만, 도메인명 반복 X                   | `create`, `getList`, `getDetail`, `update`, `delete`                       |
+| Service    | `행위 + 대상`(유스케이스 동사), 도메인명 포함           | `createOrder`, `getOrder`(예외), `getOrderList`, `changeOrderStatus`       |
 | Repository | `getBy`(예외)/`findBy`(null)/`find...With...`(로딩의도) | `getById`, `findById`, `findByIdWithItems`, `findPage`, `findPageByCursor` |
 
 ## 메서드 순서
@@ -171,11 +171,11 @@ export class OrderDetailData {
 
 반복되는 list 쿼리 파라미터(페이지네이션·검색)는 매번 새로 선언하지 않고 **`src/common/base/dto/`의 베이스 DTO를 `IntersectionType`으로 조합**한다. Response의 `R.*`에 대응하는 Request 쪽 표준 surface다.
 
-| 베이스               | 필드                       | 짝(Response/Repo)                  |
-| -------------------- | -------------------------- | ---------------------------------- |
-| `OffsetPageQuery`    | `pageNum`, `pageSize` + `offset`/`limit` getter | `R.page` / `repo.findPage`         |
-| `CursorPageQuery`    | `cursor?`, `pageSize`      | `R.cursorPage` / `repo.findPageByCursor` |
-| `KeywordQuery`       | `q?`                       | —                                  |
+| 베이스            | 필드                                            | 짝(Response/Repo)                        |
+| ----------------- | ----------------------------------------------- | ---------------------------------------- |
+| `OffsetPageQuery` | `pageNum`, `pageSize` + `offset`/`limit` getter | `R.page` / `repo.findPage`               |
+| `CursorPageQuery` | `cursor?`, `pageSize`                           | `R.cursorPage` / `repo.findPageByCursor` |
+| `KeywordQuery`    | `q?`                                            | —                                        |
 
 ```typescript
 import { IntersectionType } from '@nestjs/swagger';

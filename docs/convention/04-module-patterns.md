@@ -155,8 +155,8 @@ Compact Feature → Role-Folder → Domain-Driven
 
 backend-template는 현재 도메인 모듈이 없는 스타터 상태다. 새 모듈을 추가할 때 아래 기준으로 패턴을 선택한다.
 
-| 상황                                         | 권장 패턴      |
-| -------------------------------------------- | -------------- |
-| 단순 CRUD, 파일 1~2개                        | Compact Feature |
-| controller 또는 service가 2개 이상           | Role-Folder    |
-| 독립된 bounded context가 2개 이상인 도메인   | Domain-Driven  |
+| 상황                                       | 권장 패턴       |
+| ------------------------------------------ | --------------- |
+| 단순 CRUD, 파일 1~2개                      | Compact Feature |
+| controller 또는 service가 2개 이상         | Role-Folder     |
+| 독립된 bounded context가 2개 이상인 도메인 | Domain-Driven   |
