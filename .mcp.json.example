@@ -1,0 +1,19 @@
+{
+  "//": "프로젝트 스코프 MCP 서버 템플릿. 사용하려면 .mcp.json 으로 복사하고 값을 채운다 (cp .mcp.json.example .mcp.json). .mcp.json 은 .gitignore 권장(크레덴셜 포함).",
+  "//linear": "SDD 파이프라인(이슈↔스펙↔코드)에서 Linear 이슈를 직접 조회. claude.ai 커넥터로 이미 연결돼 있으면 불필요.",
+  "//db-read": "설계 검증/스키마 대조용 읽기 전용 PostgreSQL. 반드시 read-only 사용자/플래그로 — 쓰기 권한 절대 부여 금지(사고 사례 있음).",
+  "mcpServers": {
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/sse",
+      "headers": {
+        "Authorization": "Bearer ${LINEAR_API_KEY}"
+      }
+    },
+    "db-read": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_READ_ONLY_URL}"],
+      "env": {}
+    }
+  }
+}
