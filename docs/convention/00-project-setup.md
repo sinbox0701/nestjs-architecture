@@ -37,9 +37,10 @@ import { EntityManager, FilterQuery } from '@mikro-orm/postgresql';
 
 | 스크립트         | 용도                                      |
 | ---------------- | ----------------------------------------- |
-| `pnpm start:dev` | 로컬 개발 서버 (watch + type-check + SWC) |
-| `pnpm build`     | 프로덕션 빌드 (`nest build`)              |
+| `pnpm start:dev` | 로컬 개발 서버 (watch + type-check + SWC, 기동 전 `metadata` 자동 실행) |
+| `pnpm build`     | 프로덕션 빌드 (`nest build`, prebuild로 `metadata` 자동 실행) |
 | `pnpm typecheck` | 타입 체크만 (`tsc --noEmit`)              |
+| `pnpm metadata`  | Swagger OpenAPI 메타데이터 생성 (`src/metadata.ts`). JSDoc→Swagger 파이프라인. build/start:dev가 자동 호출 |
 
 ### 린트/포맷
 
@@ -49,6 +50,7 @@ import { EntityManager, FilterQuery } from '@mikro-orm/postgresql';
 | `pnpm lint:check`   | ESLint 실행 (수정 없음). CI에서 사용            |
 | `pnpm format`       | Prettier 포맷 적용                              |
 | `pnpm format:check` | Prettier 포맷 체크만                            |
+| `pnpm dep:check`    | 모듈 경계 검사 (dependency-cruiser, `.dependency-cruiser.cjs`). CI 차단 |
 
 ### 테스트
 
@@ -122,7 +124,7 @@ import { EntityManager, FilterQuery } from '@mikro-orm/postgresql';
 1. `eslint.config.mjs`에서 해당 룰을 찾아 수정하거나 삭제한다.
 2. 파일별 override 블록에 같은 셀렉터가 중복되어 있을 수 있으므로 모든 블록을 확인한다.
 3. `pnpm lint:check`로 변경 후 기존 코드에 영향이 없는지 확인한다.
-4. `docs/convention/README.md`의 ESLint 컨벤션 룰 테이블을 업데이트한다.
+4. 룰의 단일 출처는 `eslint.config.mjs`다. 변경이 컨벤션 의미에 영향을 주면 관련 `docs/convention/` 문서를 함께 갱신한다.
 
 ### warn → error 승격
 
@@ -172,15 +174,19 @@ node scripts/check-entity-migration.mjs --warn  # 엔티티↔마이그레이션
 
 ```
 1. Checkout
-2. Node.js 24 설정 + pnpm install
-3. lint:check
-4. typecheck
-5. build
-6. test (단위)
-7. test:integration (실제 DB)
-8. test:e2e
+2. 마이그레이션 드리프트 체크 (엔티티 변경에 마이그레이션 누락 시 차단)
+3. pnpm 설정 + Node.js 24 + install
+4. lint:check
+5. typecheck
+6. dep:check (모듈 경계 — dependency-cruiser)
+7. build
+8. test (단위)
+9. test:integration (실제 DB)
+10. test:e2e
 ```
 
+- **드리프트 체크가 가장 앞**이다 (base 대비 `*.entity.ts` 변경에 마이그레이션 누락이면 차단). 로컬 husky는 경고(비차단)지만 CI는 차단.
+- **`dep:check`(dependency-cruiser)가 build 앞**에 있다. 모듈 경계 위반(`03-module-rules.md`)을 빌드 전에 차단한다.
 - **lint:check가 build보다 앞에 위치**한다. 린트 실패 시 빌드를 기다리지 않고 빠르게 실패한다.
 - `pnpm lint:check`는 `--fix` 없이 실행되므로, 위반이 있으면 PR이 실패한다.
 - GitHub-hosted runner를 사용한다 (self-hosted 아님).

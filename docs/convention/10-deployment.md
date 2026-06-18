@@ -163,7 +163,7 @@ diff schema_fresh.sql schema_migrated.sql
 
 - 트리거: PR → main.
 - services: `postgres:17.6`, `redis:8.2`.
-- 단계: install → `lint:check` → `typecheck` → `build` → `test`(unit) → `test:integration` → `test:e2e` (`.env.test` 사용).
+- 단계: 마이그레이션 드리프트 체크(차단) → install → `lint:check` → `typecheck` → `dep:check`(모듈 경계, dependency-cruiser) → `build` → `test`(unit) → `test:integration` → `test:e2e` (`.env.test` 사용).
 
 ### CD
 

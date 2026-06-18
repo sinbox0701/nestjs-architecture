@@ -44,11 +44,11 @@ src/
 - `base/` — `BaseEntity`, `BaseRepository`, 공통 응답 래퍼 `R.*`
 - `config/` — `runtime-env.ts` (APP_ENV 헬퍼, 환경 판별 함수)
 - `constants/` — Redis 키, 이벤트 관련 상수
-- `decorators/` — `Public`, `ApiAuth`, `UserAuth`, 커스텀 validator (`IsBool`, `IsDateOrDateString` 등)
+- `decorators/` — `Public`(인증 스킵), `IsBool`, `IsDateOrDateString`. 인증/인가용 param 데코레이터(`@UserAuth` 등)는 접근제어 재작업에서 정리 예정
 - `exceptions/` — 공통 HTTP 예외 기반 클래스
 - `types/` — JSON, 공용 타입
 - `utils/` — 시간, 비밀번호, 로그 마스킹 유틸
-- `validator/` — 커스텀 class-validator 데코레이터 구현체
+- `validator/` — 커스텀 class-validator 구현체: `IsEmailParts`, `UniqueArray`, `IsKoreanAsciiText`/`IsKoreanAsciiNoNewline`/`IsSearchKeyword`/`IsNoEmojiNoNewline` + 패턴 상수(`KOREAN_ASCII_TEXT_PATTERN` 등)
 
 ### `src/core`
 
