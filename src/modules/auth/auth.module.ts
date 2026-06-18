@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { IdentityModule } from '@/modules/identity/identity.module';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthCookieService } from './auth-cookie.service';
@@ -15,6 +17,7 @@ import { TokenService } from './token.service';
  * JwtModule(global)·ConfigModule(global)·RedisClient(@Global)에 의존하므로 별도 import 불필요.
  */
 @Module({
+  imports: [IdentityModule], // USER_CREDENTIAL_PORT 제공
   controllers: [AuthController],
   providers: [AuthService, TokenService, RefreshTokenStore, AuthCookieService],
   exports: [TokenService],

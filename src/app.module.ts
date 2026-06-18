@@ -20,6 +20,8 @@ import { DatabaseModule } from './lib/database/database.module';
 import { MailModule } from './lib/mail/mail.module';
 import { RedisModule } from './lib/redis/redis.module';
 import { StorageModule } from './lib/storage/storage.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { IdentityModule } from './modules/identity/identity.module';
 
 @Module({
   imports: [
@@ -61,7 +63,9 @@ import { StorageModule } from './lib/storage/storage.module';
     MailModule,
     StorageModule,
 
-    // Business modules는 도메인 단계에서 여기에 추가한다 (src/modules/*).
+    // Business modules
+    IdentityModule,
+    AuthModule,
   ],
   controllers: [HealthController],
   providers: [
