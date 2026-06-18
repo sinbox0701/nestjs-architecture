@@ -19,9 +19,11 @@
   "scripts": {
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "build": "nest build",
+    "metadata": "sh scripts/ensure-metadata.sh && ts-node scripts/generate-metadata.ts",
+    "prebuild": "pnpm run metadata",
+    "build": "nest build && npx swc src/metadata.ts -o dist/metadata.js --config-file .swcrc",
     "start": "pnpm run start:dev",
-    "start:dev": "NODE_ENV=development APP_ENV=dev nest start --watch --type-check -b swc",
+    "start:dev": "pnpm run metadata && NODE_ENV=development APP_ENV=dev nest start --watch --type-check -b swc",
     "start:debug": "NODE_ENV=development APP_ENV=dev nest start --debug --watch -b swc",
     "start:prod": "NODE_ENV=production APP_ENV=prod node dist/main.js",
     "lint": "eslint \"{src,tests}/**/*.ts\" --fix",
