@@ -82,6 +82,9 @@ const baseEnvSchema = z.object({
   // ── Auth / Session (제네릭) ──
   JWT_SECRET: z.string().min(1).default('change-me-in-production'),
   JWT_EXPIRES_IN: z.string().min(1).default('1h'),
+  // 서명/검증 알고리즘. 대칭 JWT_SECRET 기반이므로 HMAC 계열만 허용한다.
+  // 비대칭(RS/ES)으로 전환하려면 키 쌍 설정과 함께 이 enum을 확장해야 한다.
+  JWT_ALGORITHM: z.enum(['HS256', 'HS384', 'HS512']).default('HS256'),
   SESSION_SECRET: z.string().min(1).default('change-me-in-production'),
   SESSION_MAX_AGE: z.coerce.number().int().min(0).default(86400000),
   AUTH_MAX_LOGIN_ATTEMPTS: z.coerce.number().int().min(1).default(5),
