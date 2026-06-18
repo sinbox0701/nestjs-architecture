@@ -119,6 +119,16 @@ PR 전: pnpm migration:create → SQL 검수 → pnpm migration:verify (임시 D
 - Idempotent SQL 필수 (`IF NOT EXISTS`). 상세: `10-deployment.md`.
 - 드리프트 가드(`scripts/check-entity-migration.mjs`): `*.entity.ts` 변경 시 마이그레이션 누락을 감지 — pre-commit 경고(비차단), CI 차단.
 
+## Swagger / API 문서 (JSDoc 기반)
+
+SWC 빌드는 `@nestjs/swagger` tsc 플러그인을 못 쓰므로, **빌드/기동 전 `pnpm metadata`가 `src/metadata.ts`를 생성**해 OpenAPI 메타데이터를 주입한다 (`prebuild`·`start:dev`에 배선됨, `scripts/generate-metadata.ts`).
+
+- **컨트롤러 메서드 JSDoc 첫 줄 → operation summary** (orval 함수 설명·IDE 호버). `@ApiOperation()` 수동 선언 지양.
+- **DTO 필드 JSDoc(`@example` 포함) + class-validator 데코레이터 → 스키마 설명·제약**. `@ApiProperty()` 지양.
+- 컨트롤러 메서드명·DTO 클래스명·필드 enum이 orval로 FE 타입/함수명에 **직결**된다 → `07-naming-and-style.md` 참조.
+- `src/metadata.ts`는 **생성물**이다: gitignore 대상, 직접 수정 금지, eslint 제외.
+- 트러블슈팅: build/start 에러가 `src/metadata.ts`에서 나면 해당 파일을 지우고 `pnpm metadata`(또는 재빌드)로 재생성한다.
+
 ## SDD 파이프라인 (.claude/commands)
 
 ```

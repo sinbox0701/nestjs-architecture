@@ -17,6 +17,7 @@ src/
   bootstrap.ts             ← Nest 앱 초기화
   app.module.ts            ← 루트 모듈
   swagger.ts               ← Swagger 설정
+  metadata.ts              ← prebuild/기동 시 자동 생성되는 Swagger 메타데이터 (gitignore, 직접 수정 금지)
   health.controller.ts     ← 헬스 체크
   tracing.ts               ← OpenTelemetry 계측 초기화
   config/
