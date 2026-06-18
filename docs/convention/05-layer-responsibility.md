@@ -23,7 +23,7 @@
 ## Controller
 
 - 라우팅과 request binding을 담당한다.
-- 인증/인가 데코레이터를 선언한다 (`@Roles`, `@Public` — `06-access-control.md`).
+- 인증/인가 데코레이터를 선언한다 (`@Requires(action, resourceType)`, `@Public` — `06-access-control.md`).
 - DTO validation을 통과한 입력을 서비스로 전달한다.
 - 응답은 기본적으로 `R.data`, `R.list`, `R.page`, `R.cursorPage`, `R.empty`를 사용한다.
 - 역할이 다르면 public/admin controller를 분리한다.
@@ -63,10 +63,11 @@ OrderDetailService   // 단건 상세 조회, 하위 항목 계층 조립
 도메인 정책 판단(접근 권한, 상태 전이 가능 여부 등)이 서비스에서 반복되면 `*.policy.ts`로 분리한다.
 
 ```typescript
-// note.policy.ts
-export class NotePolicy {
-  static canUpdate(note: Note, userId: number): boolean { ... }
-  static canDelete(note: Note, userId: number, roleCode: RoleCode): boolean { ... }
+// note.policy.ts — 팀 소유권 등 엔티티 단위 규칙은 ResourcePolicy를 상속한다 (06-access-control.md)
+@Injectable()
+export class NotePolicy extends ResourcePolicy<Note> {
+  canUpdate(actor: AuthSubject, note: Note): boolean { return this.isTeamMember(actor, note); }
+  canDelete(actor: AuthSubject, note: Note): boolean { return this.isTeamOwner(actor, note); }
 }
 ```
 
@@ -110,8 +111,8 @@ async getNoteList(query: GetNoteListRequest): Promise<{ list: Note[]; count: num
 ```typescript
 // 좋음: DTO + 별도 인자
 @Post()
-async create(@UserAuth() auth: AuthSubject, @Body() body: CreateNoteRequest) {
-  return R.data(await this.noteService.createNote(body, auth.id));
+async create(@CurrentUser() actor: AuthSubject, @Body() body: CreateNoteRequest) {
+  return R.data(await this.noteService.createNote(body, actor.id));
 }
 
 // service 쪽

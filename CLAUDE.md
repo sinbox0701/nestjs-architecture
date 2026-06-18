@@ -17,20 +17,20 @@
 
 코드를 작성/수정할 때 반드시 `docs/convention/` 문서를 따른다. 작업 범위에 해당하는 문서를 먼저 읽는다.
 
-| 문서                         | 핵심                                                              |
-| ---------------------------- | ----------------------------------------------------------------- |
-| `00-project-setup.md`        | 기술 스택, ESLint/CI/Hook 설정                                    |
-| `01-project-structure.md`    | 도메인 우선 배치, `src/` 구조                                     |
-| `03-module-rules.md`         | 동기=imports/exports, 비동기=이벤트                               |
-| `04-module-patterns.md`      | Compact Feature / Role-Folder / Domain-Driven                     |
-| `05-layer-responsibility.md` | Controller→Service→Repository→Entity 책임, MikroORM 관계          |
-| `06-access-control.md`       | `@Roles` + RolesGuard RBAC (RoleCode USER/ADMIN/SUPER)            |
-| `07-naming-and-style.md`     | 네이밍, DTO 명명, 메서드명 규칙                                   |
-| `08-env-setup.md`            | zod typed config, `.env`/`.env.test`, Docker                     |
-| `09-testing.md`              | 단위/통합/e2e 패턴, metadata 기반 `truncateAll`                  |
-| `10-deployment.md`           | 환경 구분, 마이그레이션 관리, Baseline 전진/squash               |
-| `11-query-strategy.md`       | 3경로 쿼리 규칙, Load Strategy, 인덱스 원칙                       |
-| `12-api-design.md`           | REST URL/리소스 규칙, HTTP 메서드·상태코드, 설계 가드레일         |
+| 문서                         | 핵심                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `00-project-setup.md`        | 기술 스택, ESLint/CI/Hook 설정                                                              |
+| `01-project-structure.md`    | 도메인 우선 배치, `src/` 구조                                                               |
+| `03-module-rules.md`         | 동기=imports/exports, 비동기=이벤트                                                         |
+| `04-module-patterns.md`      | Compact Feature / Role-Folder / Domain-Driven                                               |
+| `05-layer-responsibility.md` | Controller→Service→Repository→Entity 책임, MikroORM 관계                                    |
+| `06-access-control.md`       | 팀 스코프 RBAC + 소유권 ABAC, default-deny, 3-tier (`@Requires`/PolicyGuard/ResourcePolicy) |
+| `07-naming-and-style.md`     | 네이밍, DTO 명명, 메서드명 규칙                                                             |
+| `08-env-setup.md`            | zod typed config, `.env`/`.env.test`, Docker                                                |
+| `09-testing.md`              | 단위/통합/e2e 패턴, metadata 기반 `truncateAll`                                             |
+| `10-deployment.md`           | 환경 구분, 마이그레이션 관리, Baseline 전진/squash                                          |
+| `11-query-strategy.md`       | 3경로 쿼리 규칙, Load Strategy, 인덱스 원칙                                                 |
+| `12-api-design.md`           | REST URL/리소스 규칙, HTTP 메서드·상태코드, 설계 가드레일                                   |
 
 ## 핵심 원칙 (DO/DON'T)
 
@@ -66,17 +66,21 @@ throw NOTE_EXCEPTIONS.NOT_FOUND();
 - `console.log`/`console.error`를 쓰지 않는다. `FrameworkLogger`(`src/core/logger/`)를 사용한다.
 - 로그에 추적 가능한 식별자(id 등)를 포함한다.
 
-### 5. 접근제어 — `@Roles` RBAC
+### 5. 접근제어 — 팀 스코프 RBAC + ABAC (default-deny)
 
 ```typescript
-import { Roles, RoleCode } from '@/lib/access-control';
+import { Requires, Action, CurrentUser, AuthSubject } from '@/lib/access-control';
 
-@Roles(RoleCode.ADMIN, RoleCode.SUPER) // 없으면 인증된 모든 사용자 통과
-@Post()
-create() {}
+@Requires(Action.UPDATE, 'scenario') // Tier1: 팀역할×액션 (없으면 default-deny로 거부)
+@Patch(':teamId/scenarios/:id')
+update(@CurrentUser() actor: AuthSubject, @Body() body: UpdateScenarioRequest) {
+  return this.service.update(actor, ...); // Tier2: service에서 ResourcePolicy.authorize
+}
 ```
 
-- `@Public()`(`src/common/decorators/auth-public.decorator.ts`)은 인증 스킵. ABAC는 향후 확장(`06-access-control.md`).
+- 보호 라우트는 `@Requires` 또는 `@Public()`이 **반드시** 있어야 한다(default-deny). 인증만으론 통과 못 함.
+- Tier0 인증(`AuthGuard`+blocklist) → Tier1 RBAC(`PolicyGuard`) → Tier2 ABAC(`ResourcePolicy`, 소유권). 상세: `06-access-control.md`.
+- 스타터는 엔진만 제공. 팀 엔티티·역할 매트릭스는 도메인에서 구현(`AccessPolicyProvider` 교체).
 
 ### 6. 3경로 쿼리 전략
 
@@ -97,16 +101,16 @@ create() {}
 
 ## 명령어
 
-| 작업       | 명령                                                          |
-| ---------- | ------------------------------------------------------------- |
-| 개발       | `pnpm start:dev`                                              |
-| 빌드       | `pnpm build`                                                  |
-| 타입체크   | `pnpm typecheck`                                              |
-| 린트       | `pnpm lint` (--fix) / `pnpm lint:check` (CI)                  |
-| 포맷       | `pnpm format` / `pnpm format:check`                           |
-| 테스트     | `pnpm test` · `pnpm test:integration` · `pnpm test:e2e`       |
-| 시드       | `pnpm seed` (core) · `pnpm mock:seed` (faker, dev 전용)        |
-| 로컬 인프라| `pnpm docker:up` / `pnpm docker:down`                         |
+| 작업        | 명령                                                    |
+| ----------- | ------------------------------------------------------- |
+| 개발        | `pnpm start:dev`                                        |
+| 빌드        | `pnpm build`                                            |
+| 타입체크    | `pnpm typecheck`                                        |
+| 린트        | `pnpm lint` (--fix) / `pnpm lint:check` (CI)            |
+| 포맷        | `pnpm format` / `pnpm format:check`                     |
+| 테스트      | `pnpm test` · `pnpm test:integration` · `pnpm test:e2e` |
+| 시드        | `pnpm seed` (core) · `pnpm mock:seed` (faker, dev 전용) |
+| 로컬 인프라 | `pnpm docker:up` / `pnpm docker:down`                   |
 
 ## 마이그레이션 워크플로
 
