@@ -1,6 +1,7 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { randomUUID } from 'crypto';
 import { createClient, RedisClientType } from 'redis';
 
 import { FrameworkLogger } from '@/core/logger/framework-logger';
@@ -45,7 +46,7 @@ export class RedisClient implements OnModuleInit, OnModuleDestroy {
   private subscriptions = new Map<string, RedisMessageHandler>();
 
   constructor(private readonly configService: ConfigService) {
-    const fastRetries = this.configService.get<number>('REDIS_FAST_RETRIES', 10);
+    const fastRetries = this.configService.get<number>('REDIS_FAST_RETRIES', 5);
     const slowRetryInterval = this.configService.get<number>('REDIS_SLOW_RETRY_INTERVAL', 30000);
     const slowRetryLogInterval = this.configService.get<number>('REDIS_SLOW_RETRY_LOG_INTERVAL', 10);
 
@@ -380,7 +381,7 @@ export class RedisClient implements OnModuleInit, OnModuleDestroy {
   // ===== 분산 락 =====
 
   async acquireLock(key: string, ttlSeconds: number): Promise<string | null> {
-    const token = crypto.randomUUID();
+    const token = randomUUID();
     const result = await this.client.set(key, token, { NX: true, EX: ttlSeconds });
     return result === 'OK' ? token : null;
   }

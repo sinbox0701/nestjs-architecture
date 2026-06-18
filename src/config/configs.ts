@@ -68,6 +68,7 @@ export const redisConfig = registerAs('redis', () => {
     db: e.REDIS_DB,
     fastRetries: e.REDIS_FAST_RETRIES,
     slowRetryInterval: e.REDIS_SLOW_RETRY_INTERVAL,
+    slowRetryLogInterval: e.REDIS_SLOW_RETRY_LOG_INTERVAL,
   };
 });
 

@@ -68,6 +68,8 @@ const baseEnvSchema = z.object({
   REDIS_DB: z.coerce.number().int().min(0).max(15).default(0),
   REDIS_FAST_RETRIES: z.coerce.number().int().min(0).default(5),
   REDIS_SLOW_RETRY_INTERVAL: z.coerce.number().int().min(0).default(30000),
+  // 장기 재연결 중 로그를 남길 시도 횟수 간격(N회마다 1회). slowRetryInterval와 함께 동작.
+  REDIS_SLOW_RETRY_LOG_INTERVAL: z.coerce.number().int().min(1).default(10),
   // Redis를 "필수 의존성"으로 둘지 여부. true면 부팅 시 연결 실패가 앱 시작을 막는다.
   // refresh token/blocklist/session을 Redis에 두는 도메인은 stage/prod에서 true 권장.
   REDIS_REQUIRED: booleanFromEnv.default(false),
