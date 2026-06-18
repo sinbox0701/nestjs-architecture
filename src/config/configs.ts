@@ -78,6 +78,8 @@ export const authConfig = registerAs('auth', () => {
     jwtSecret: e.JWT_SECRET,
     jwtExpiresIn: e.JWT_EXPIRES_IN,
     jwtAlgorithm: e.JWT_ALGORITHM,
+    refreshSecret: e.REFRESH_TOKEN_SECRET,
+    refreshExpiresIn: e.REFRESH_TOKEN_EXPIRES_IN,
     sessionSecret: e.SESSION_SECRET,
     sessionMaxAge: e.SESSION_MAX_AGE,
     maxLoginAttempts: e.AUTH_MAX_LOGIN_ATTEMPTS,
