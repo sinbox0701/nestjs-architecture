@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-backend_template}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      TZ: ${TZ:-Etc/UTC}
+      PGTZ: ${PGTZ:-UTC}
+    volumes:
+      - ${POSTGRES_DATA_DIR:-./.data/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    ports:
+      - '${POSTGRES_HOST_PORT:-5432}:5432'
+
+  redis:
+    image: redis:8.2.1-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - ${REDIS_DATA_DIR:-./.data/redis}:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    ports:
+      - '${REDIS_HOST_PORT:-6379}:6379'
+
+  # 선택: DB GUI. `docker compose --profile tools up -d` 로만 기동.
+  pgadmin:
+    image: dpage/pgadmin4:9.8.0
+    profiles: ['tools']
+    restart: unless-stopped
+    ports:
+      - '${PGADMIN_HOST_PORT:-5050}:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-changeme}
+    depends_on:
+      postgres:
+        condition: service_healthy
