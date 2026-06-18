@@ -1,0 +1,197 @@
+{
+  "name": "backend-template",
+  "version": "0.1.0",
+  "description": "Backend Template — NestJS + MikroORM v7 + PostgreSQL starter",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.30.2",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "argon2",
+      "@swc/core",
+      "unrs-resolver",
+      "protobufjs"
+    ]
+  },
+  "scripts": {
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "build": "nest build",
+    "start": "pnpm run start:dev",
+    "start:dev": "NODE_ENV=development APP_ENV=dev nest start --watch --type-check -b swc",
+    "start:debug": "NODE_ENV=development APP_ENV=dev nest start --debug --watch -b swc",
+    "start:prod": "NODE_ENV=production APP_ENV=prod node dist/main.js",
+    "lint": "eslint \"{src,tests}/**/*.ts\" --fix",
+    "lint:check": "eslint \"{src,tests}/**/*.ts\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "dep:check": "depcruise src --config .dependency-cruiser.cjs",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:integration": "jest --config tests/jest-integration.json --runInBand",
+    "test:e2e": "MIKRO_ORM_ENTITY_SOURCE=ts jest --config tests/jest-e2e.json --runInBand",
+    "migration:create": "mikro-orm migration:create",
+    "migration:up": "mikro-orm migration:up",
+    "migration:down": "mikro-orm migration:down",
+    "migration:list": "mikro-orm migration:list",
+    "migration:pending": "mikro-orm migration:pending",
+    "migration:fresh": "mikro-orm migration:fresh",
+    "migration:verify": "bash scripts/migration-verify.sh",
+    "seed": "ts-node -r tsconfig-paths/register src/lib/database/setup.ts",
+    "mock:seed": "ts-node -r tsconfig-paths/register src/lib/database/setup-mock.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:clean": "docker compose down -v"
+  },
+  "dependencies": {
+    "@mikro-orm/core": "^7.0.7",
+    "@mikro-orm/decorators": "^7.0.7",
+    "@mikro-orm/migrations": "^7.0.7",
+    "@mikro-orm/nestjs": "^7.0.1",
+    "@mikro-orm/postgresql": "^7.0.7",
+    "@mikro-orm/seeder": "^7.0.7",
+    "@mikro-orm/sql-highlighter": "^1.0.1",
+    "@nestjs/cache-manager": "^3.1.0",
+    "@nestjs/common": "^11.1.17",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.17",
+    "@nestjs/event-emitter": "^3.0.1",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.17",
+    "@nestjs/schedule": "^6.1.1",
+    "@nestjs/swagger": "^11.2.6",
+    "@nestjs/throttler": "^6.5.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.73.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.215.0",
+    "@opentelemetry/resources": "^2.7.0",
+    "@opentelemetry/sdk-node": "^0.215.0",
+    "@opentelemetry/sdk-trace-node": "^2.7.0",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "argon2": "^0.44.0",
+    "cache-manager": "^7.2.8",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cron": "^4.4.0",
+    "dayjs": "^1.11.20",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "pluralize": "^8.0.0",
+    "redis": "^5.11.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "uuid": "^13.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@faker-js/faker": "^10.4.0",
+    "@mikro-orm/cli": "^7.0.7",
+    "@nestjs/cli": "^11.0.17",
+    "@nestjs/schematics": "^11.0.10",
+    "@nestjs/testing": "^11.1.17",
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.21",
+    "@swc/jest": "^0.2.39",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "@types/pluralize": "^0.0.33",
+    "@types/supertest": "^7.2.0",
+    "dependency-cruiser": "^17.4.3",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.58.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": ".",
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/tests/**/unit/**/*.spec.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/tests/_utils/"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@test-utils/(.*)$": "<rootDir>/tests/_utils/$1",
+      "^src/(.*)$": "<rootDir>/src/$1",
+      "^tests/(.*)$": "<rootDir>/tests/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(\\.pnpm/(@mikro-orm|@faker-js|kysely).*|(@mikro-orm|@faker-js|kysely))/)"
+    ],
+    "transform": {
+      "^.+\\.(t|j)sx?$": [
+        "@swc/jest",
+        {
+          "jsc": {
+            "parser": {
+              "syntax": "typescript",
+              "decorators": true
+            },
+            "transform": {
+              "legacyDecorator": true,
+              "decoratorMetadata": true
+            },
+            "baseUrl": "./src",
+            "paths": {
+              "@/*": [
+                "*"
+              ]
+            },
+            "target": "es2022"
+          },
+          "module": {
+            "type": "commonjs"
+          }
+        }
+      ]
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "setupFiles": [
+      "reflect-metadata"
+    ]
+  },
+  "mikro-orm": {
+    "useTsNode": true,
+    "configPaths": [
+      "./src/lib/database/mikro-orm.config.ts",
+      "./dist/lib/database/mikro-orm.config.js"
+    ]
+  }
+}
