@@ -1,0 +1,4 @@
+pnpm lint-staged
+
+# 엔티티 변경 시 마이그레이션 누락 경고 (비차단 — dev 반복을 막지 않음)
+node scripts/check-entity-migration.mjs --warn
