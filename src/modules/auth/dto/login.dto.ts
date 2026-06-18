@@ -14,8 +14,8 @@ export class LoginRequest {
 class LoginAuthorityTeamData {
   /** 권한팀 ID */
   id!: number;
-  /** 권한팀 색 @example "BLUE" */
-  color!: string;
+  /** 권한팀 이름(식별자) @example "BLUE" */
+  name!: string;
 }
 
 class LoginTeamData {

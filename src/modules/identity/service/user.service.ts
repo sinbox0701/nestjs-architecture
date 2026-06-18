@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/postgresql';
 
 import { PasswordUtil } from '@/common/utils/password.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
@@ -7,9 +6,10 @@ import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { CreateUserRequest } from '../dto/create-user.dto';
 import { GetUserListRequest, UserData } from '../dto/get-user.dto';
 import { UpdateUserRequest } from '../dto/update-user.dto';
-import { Team } from '../entity/team.entity';
 import { User } from '../entity/user.entity';
+import { TEAM_EXCEPTIONS } from '../exception/team.exception';
 import { USER_EXCEPTIONS } from '../exception/user.exception';
+import { TeamRepository } from '../repository/team.repository';
 import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class UserService {
 
   constructor(
     private readonly userRepo: UserRepository,
-    private readonly em: EntityManager,
+    private readonly teamRepo: TeamRepository,
   ) {}
 
   async createUser(dto: CreateUserRequest): Promise<UserData> {
@@ -26,9 +26,9 @@ export class UserService {
     if (existing) {
       throw USER_EXCEPTIONS.EMAIL_DUPLICATED();
     }
-    const team = await this.em.findOne(Team, { id: dto.teamId });
+    const team = await this.teamRepo.findById(dto.teamId);
     if (!team) {
-      throw USER_EXCEPTIONS.TEAM_NOT_FOUND();
+      throw TEAM_EXCEPTIONS.NOT_FOUND();
     }
     const passwordHash = await PasswordUtil.hash(dto.password);
     const user = User.create({ email: dto.email, passwordHash, name: dto.name, team, role: dto.role });

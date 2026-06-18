@@ -35,6 +35,11 @@ export class UserRepository extends BaseRepository<User> {
     return this.findOne({ email });
   }
 
+  /** 해당 팀의 활성 사용자 수(soft-delete 제외). 팀 삭제 가드에 사용. */
+  countByTeam(teamId: number): Promise<number> {
+    return this.count({ team: teamId });
+  }
+
   /**
    * 키워드 검색 + offset 페이지네이션. BaseRepository.findPage({list,count})를 재사용.
    * leading-wildcard `%q%`는 인덱스를 못 탄다 — 소규모 가정. 대용량은 trigram/FTS 검토(11-query-strategy).

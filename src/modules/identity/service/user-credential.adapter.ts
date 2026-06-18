@@ -32,7 +32,7 @@ export class UserCredentialAdapter implements UserCredentialPort {
     return {
       id: user.id,
       globalRoles: user.globalRoles,
-      authorityTeam: { id: authority.id, color: authority.color },
+      authorityTeam: { id: authority.id, name: authority.name },
       team: { id: team.id, role: user.role },
     };
   }

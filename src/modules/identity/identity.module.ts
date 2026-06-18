@@ -3,11 +3,17 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 
 import { USER_CREDENTIAL_PORT } from '@/modules/auth/user-credential.port';
 
+import { AuthorityTeamController } from './controller/authority-team.controller';
+import { TeamController } from './controller/team.controller';
 import { UserController } from './controller/user.controller';
 import { AuthorityTeam } from './entity/authority-team.entity';
 import { Team } from './entity/team.entity';
 import { User } from './entity/user.entity';
+import { AuthorityTeamRepository } from './repository/authority-team.repository';
+import { TeamRepository } from './repository/team.repository';
 import { UserRepository } from './repository/user.repository';
+import { AuthorityTeamService } from './service/authority-team.service';
+import { TeamService } from './service/team.service';
 import { UserService } from './service/user.service';
 import { UserCredentialAdapter } from './service/user-credential.adapter';
 
@@ -21,10 +27,14 @@ import { UserCredentialAdapter } from './service/user-credential.adapter';
  */
 @Module({
   imports: [MikroOrmModule.forFeature([User, Team, AuthorityTeam])],
-  controllers: [UserController],
+  controllers: [UserController, AuthorityTeamController, TeamController],
   providers: [
     UserRepository,
+    AuthorityTeamRepository,
+    TeamRepository,
     UserService,
+    AuthorityTeamService,
+    TeamService,
     UserCredentialAdapter,
     { provide: USER_CREDENTIAL_PORT, useExisting: UserCredentialAdapter },
   ],
