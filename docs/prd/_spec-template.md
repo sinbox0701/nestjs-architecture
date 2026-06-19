@@ -47,7 +47,7 @@ status: draft # draft → review → approved
 
 ### API
 
-<!-- endpoint, 인증/인가(@Roles), request/response 개요. -->
+<!-- endpoint, 인증/인가(@Requires + ResourcePolicy), request/response 개요. -->
 
 - ***
 

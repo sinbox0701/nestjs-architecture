@@ -67,21 +67,22 @@ throw NOTE_EXCEPTIONS.NOT_FOUND();
 - `console.log`/`console.error`를 쓰지 않는다. `FrameworkLogger`(`src/core/logger/`)를 사용한다.
 - 로그에 추적 가능한 식별자(id 등)를 포함한다.
 
-### 5. 접근제어 — 팀 스코프 RBAC + ABAC (default-deny)
+### 5. 접근제어 — 역할 capability RBAC + 소속팀 소유권 ABAC (default-deny)
 
 ```typescript
+// 실제 예: src/modules/identity/controller/user.controller.ts
 import { Requires, Action, CurrentUser, AuthSubject } from '@/lib/access-control';
 
-@Requires(Action.UPDATE, 'scenario') // Tier1: 팀역할×액션 (없으면 default-deny로 거부)
-@Patch(':teamId/scenarios/:id')
-update(@CurrentUser() actor: AuthSubject, @Body() body: UpdateScenarioRequest) {
-  return this.service.update(actor, ...); // Tier2: service에서 ResourcePolicy.authorize
+@Requires(Action.UPDATE, 'user') // Tier1: 역할(Role) capability (없으면 default-deny로 거부)
+@Patch(':id')
+update(@CurrentUser() actor: AuthSubject, @Param('id') id: number, @Body() body: UpdateUserRequest) {
+  return this.service.updateUser(actor, id, body); // Tier2: service에서 loadAndAuthorize/authorize
 }
 ```
 
 - 보호 라우트는 `@Requires` 또는 `@Public()`이 **반드시** 있어야 한다(default-deny). 인증만으론 통과 못 함.
-- Tier0 인증(`AuthGuard`+blocklist) → Tier1 RBAC(`PolicyGuard`) → Tier2 ABAC(`ResourcePolicy`, 소유권). 상세: `05-access-control.md`.
-- 스타터는 엔진만 제공. 팀 엔티티·역할 매트릭스는 도메인에서 구현(`AccessPolicyProvider` 교체).
+- Tier0 인증(`AuthGuard`+blocklist) → Tier1 RBAC(`PolicyGuard`, 역할 capability) → Tier2 ABAC(`ResourcePolicy`, 소속팀 소유). 상세: `05-access-control.md`.
+- 엔진 + **`identity` 레퍼런스 구현**(역할×액션 매트릭스·`UserResourcePolicy`·로그인/토큰)을 제공. 새 도메인은 자신의 매트릭스·정책을 만들어 `ACCESS_POLICY_PROVIDER`에 바인딩한다.
 
 ### 6. 3경로 쿼리 전략
 
