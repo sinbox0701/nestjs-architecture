@@ -104,3 +104,6 @@ docs/policy/
 # omc, omx
 .omc
 .omx
+
+# MikroORM 스키마 스냅샷 (migration:create diff 캐시 — 마이그레이션 파일이 진실 소스)
+migrations/.snapshot-*.json

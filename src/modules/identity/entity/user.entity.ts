@@ -1,5 +1,5 @@
 import { Ref, ref } from '@mikro-orm/core';
-import { Entity, Enum, ManyToOne, Property } from '@mikro-orm/decorators/legacy';
+import { Entity, Enum, Index, ManyToOne, Property } from '@mikro-orm/decorators/legacy';
 
 import { BaseEntity } from '@/common/base/base.entity';
 import { GlobalRole } from '@/lib/access-control';
@@ -13,8 +13,14 @@ import { Team } from './team.entity';
  * 역할(capability)은 team.role을 통해 전이된다. `globalRoles`는 플랫폼 전역 권한(SUPER 등).
  */
 @Entity()
+// email unique는 partial index(soft-delete 후 동일 이메일 재가입 허용).
+@Index({
+  name: 'users_email_active_uq',
+  expression:
+    'create unique index if not exists "users_email_active_uq" on "users" ("email") where "deleted_at" is null',
+})
 export class User extends BaseEntity {
-  @Property({ type: 'varchar', length: 255, unique: true })
+  @Property({ type: 'varchar', length: 255 })
   email!: string;
 
   /** argon2 해시. 직렬화에서 제외(hidden). */
@@ -24,7 +30,8 @@ export class User extends BaseEntity {
   @Property({ type: 'varchar', length: 100 })
   name!: string;
 
-  @ManyToOne(() => Team, { ref: true })
+  // FK 컬럼은 인덱스 필수(11-query-strategy): JOIN seq scan + 부모 삭제 시 자식 풀스캔/락 방지.
+  @ManyToOne(() => Team, { ref: true, index: true })
   team!: Ref<Team>;
 
   @Enum(() => TeamPosition)

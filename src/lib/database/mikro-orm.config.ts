@@ -5,8 +5,8 @@ import { SeedManager } from '@mikro-orm/seeder';
 import { SqlHighlighter } from '@mikro-orm/sql-highlighter';
 
 import { loadRuntimeEnv } from '@/common/config/runtime-env';
-import { CustomNamingStrategy } from '@/core/logger/custom-naming.strategy';
 import { OrmLogger } from '@/core/logger/orm-logger';
+import { CustomNamingStrategy } from '@/lib/database/custom-naming.strategy';
 
 loadRuntimeEnv();
 
