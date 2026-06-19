@@ -201,24 +201,30 @@ expect(() => note.changeStatus(Status.DONE)).toThrow(NOTE_EXCEPTIONS.INVALID_TRA
 실제 PostgreSQL(`backend_template_test`)에 연결해 Service + Repository를 검증한다.
 
 ```typescript
+import ormConfig from '@/lib/database/mikro-orm.config';
+
 describe('NoteService (Integration)', () => {
   let orm: MikroORM;
   let em: EntityManager;
   let service: NoteService;
 
   beforeAll(async () => {
-    orm = await initTestOrm();
-    await orm.schema.updateSchema();   // 엔티티 기준 스키마 동기화
-    em = orm.em as EntityManager;
-    service = new NoteService(new NoteRepository(em));
+    // jest(@swc/jest)에서는 glob 기반 엔티티 discovery가 동작하지 않아(메타데이터 0개) 클래스를
+    // 명시적으로 주입한다. truncateAll/스키마 동기화가 메타데이터에 의존하므로 필수.
+    orm = await MikroORM.init({ ...ormConfig, entities: [Note], entitiesTs: [Note] });
+    await orm.schema.ensureDatabase();
+    await orm.schema.update();         // 엔티티 기준 스키마 동기화 (v7: updateSchema → update)
   });
 
   afterAll(async () => {
-    await orm.close();
+    await orm.close(true);
   });
 
   beforeEach(async () => {
-    await truncateAll(orm);            // metadata 기반 자동 truncate
+    em = orm.em.fork();               // 전역 EM 직접 사용 금지(allowGlobalContext off) → 테스트마다 fork
+    // 격리: 같은 fork 커넥션에서 truncate. (throwaway fork로 truncate하면 미flush로 롤백되어 안 지워진다)
+    await em.getConnection().execute('TRUNCATE TABLE "notes" RESTART IDENTITY CASCADE');
+    service = new NoteService(new NoteRepository(em));
   });
 
   it('soft-deleted note는 기본 조회에서 제외된다', async () => { ... });
@@ -226,6 +232,10 @@ describe('NoteService (Integration)', () => {
 ```
 
 - `--runInBand` 필수 (DB 상태 공유).
+- **엔티티는 명시 주입**한다 — jest에서 glob discovery가 0개라 `initTestOrm()`(glob) 단독으로는 메타데이터가 비어 `truncateAll`/스키마 동기화가 동작하지 않는다.
+- 스키마 동기화는 v7에서 `orm.schema.update()`(구 `updateSchema()` 아님), 사전 `ensureDatabase()`.
+- truncate는 **seed와 같은 fork 컨텍스트**에서 실행한다. 전역 `orm.em` 커넥션은 지연 트랜잭션에 묶여 TRUNCATE가 롤백될 수 있다(`truncateAll(orm)` 헬퍼의 알려진 한계 — 명시 엔티티 + fork 필요).
+- actor(AuthSubject)의 `id`는 DB serial PK(`RESTART IDENTITY`로 1부터)와 **충돌하지 않게** 큰 값(예: 1000+)을 쓴다 — 충돌 시 `isSelf` 오판.
 - 데이터 생성은 `em.persist(entity)` + `await em.flush()` (v7에서 `persistAndFlush` 제거됨).
 - Service 분기 로직은 Unit으로, HTTP 파이프라인은 E2E로 보낸다.
 
