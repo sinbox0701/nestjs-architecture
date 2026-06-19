@@ -62,7 +62,7 @@ src/
 ### `src/lib`
 
 - `access-control/` — 팀 스코프 RBAC+ABAC 엔진: `@Requires(action, resourceType)` 데코레이터, `PolicyGuard`(Tier1), `ResourcePolicy`(Tier2), `Action` enum, `GlobalRole` enum(SUPER), `AuthSubject` 타입
-- `database/` — MikroORM 설정, DB 모듈, 시더
+- `database/` — MikroORM 설정, DB 모듈, 시더, Kysely 읽기 클라이언트(`kysely/` — 복잡 조회용 `KYSELY_DB`, `10-query-strategy.md`)
 - `redis/` — Redis 클라이언트
 - `mail/` — 메일 발송 (현재 no-op 스켈레톤)
 - `storage/` — 파일 스토리지 (현재 no-op 스켈레톤)

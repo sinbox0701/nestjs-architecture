@@ -57,6 +57,8 @@ UserReadService; // getUserList, getUser, 스코프 필터, 접근 제어
 **분리 기준**: 조회 메서드가 5개 이상이거나, 조회에 권한 판단 같은 복합 로직이 들어갈 때.
 **위치**: 같은 `service/` 폴더 내에 둔다.
 
+> **ReadService vs Kysely ReadModel** — 헷갈리기 쉬우니 구분한다. `*ReadService`는 **MikroORM(엔티티) 기반 조회**를 서비스 레이어에서 분리한 것이다. 반면 다중 JOIN·GROUP BY·집계처럼 엔티티 모델이 어색한 **복잡/대시보드 조회**는 `<domain>/read-model/`의 **Kysely ReadModel**(읽기 전용, 엔티티 우회)로 짠다. 상세: `10-query-strategy.md`.
+
 #### Policy 클래스 분리
 
 도메인 정책 판단(접근 권한, 상태 전이 가능 여부 등)이 서비스에서 반복되면 `*.policy.ts`로 분리한다.

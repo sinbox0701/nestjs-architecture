@@ -61,11 +61,13 @@ order/
   controller/
   service/
   repository/
+  read-model/   ← (선택) Kysely 복잡 조회/집계 — 10-query-strategy.md
   dto/
   entity/
   exception/
   type/
-  handler/
+  event/        ← (선택) 비동기 이벤트 페이로드 — 02-module-rules.md
+  handler/      ← (선택) @OnEvent 후속 처리
 ```
 
 예시 구조 (`notification` 모듈):
