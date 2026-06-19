@@ -65,7 +65,7 @@ ConfigModule.forRoot({ isGlobal: true, validate: validateEnv });
 `.env.test`는 **git에 커밋한다.** 모든 값이 localhost 전용이고 비밀이 없기 때문이다.
 
 - 통합/E2E 테스트는 도커 밖 호스트에서 실행하므로 전부 `localhost`를 가리킨다.
-- **개발 DB와 다른 이름(`backend_template_test`)을 쓴다.** 통합 테스트가 매 실행마다 테이블을 truncate하기 때문이다 (`09-testing.md`의 metadata 기반 `truncateAll` 참조).
+- **개발 DB와 다른 이름(`backend_template_test`)을 쓴다.** 통합 테스트가 매 실행마다 테이블을 truncate하기 때문이다 (`08-testing.md`의 metadata 기반 `truncateAll` 참조).
 - Jest 설정(`tests/jest-integration.json`, `tests/jest-e2e.json`)은 `_utils/setup-test-env.ts`에서 `.env.test`를 로드한다.
 
 ```env
@@ -102,7 +102,7 @@ pnpm docker:clean   # 볼륨까지 정리
 | `pnpm start:dev`        | 로컬 watch 실행 (SWC + type-check)                               |
 | `pnpm start:prod`       | production 런타임 실행 (dist)                                    |
 | `pnpm migration:up`     | 마이그레이션 적용                                                |
-| `pnpm migration:verify` | 로컬 임시 DB로 pending 마이그레이션 dry-run (`10-deployment.md`) |
+| `pnpm migration:verify` | 로컬 임시 DB로 pending 마이그레이션 dry-run (`09-deployment.md`) |
 | `pnpm seed`             | 시드 데이터 (개발 전용)                                          |
 | `pnpm docker:up`        | 로컬 postgres + redis 기동                                       |
 
@@ -132,6 +132,6 @@ COOKIE_SECURE=true
 ## 동작 규칙
 
 - `APP_ENV=dev`(로컬)에서만 자동 schema sync(`schema:update`)를 권장한다.
-- `APP_ENV=stage`, `prod`에서는 마이그레이션 기반으로 동작하며, pending migration이 있으면 부팅을 거부하도록 운영한다 (`10-deployment.md`).
+- `APP_ENV=stage`, `prod`에서는 마이그레이션 기반으로 동작하며, pending migration이 있으면 부팅을 거부하도록 운영한다 (`09-deployment.md`).
 - `SWAGGER_ENABLED=false`이면 Swagger가 비활성화된다 (기본값: true).
 - `.env` 파일은 git에 커밋하지 않는다. 민감 정보는 환경변수로만 주입한다.

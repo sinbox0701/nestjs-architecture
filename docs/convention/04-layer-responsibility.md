@@ -10,7 +10,7 @@
 - **MikroORM 관계**: `ref.id` > `getEntity()` > `load()` > `unwrap()` 우선순위. `populate` 없이 필드 접근 금지
 - **DO**: FK relation은 repository에서 `populate`, 외부 도메인은 service에서 배치 조회 후 조합
 - **DON'T**: `unwrap().field` 패턴, controller에서 repository 직접 호출, for문 안에서 추가 쿼리
-- **복잡 조회**: 집계·대시보드는 Kysely ReadModel로 우회 (`11-query-strategy.md` 참조)
+- **복잡 조회**: 집계·대시보드는 Kysely ReadModel로 우회 (`10-query-strategy.md` 참조)
 
 ---
 
@@ -23,7 +23,7 @@
 ## Controller
 
 - 라우팅과 request binding을 담당한다.
-- 인증/인가 데코레이터를 선언한다 (`@Requires(action, resourceType)`, `@Public` — `06-access-control.md`).
+- 인증/인가 데코레이터를 선언한다 (`@Requires(action, resourceType)`, `@Public` — `05-access-control.md`).
 - DTO validation을 통과한 입력을 서비스로 전달한다.
 - 응답은 기본적으로 `R.data`, `R.list`, `R.page`, `R.cursorPage`, `R.empty`를 사용한다.
 - 역할이 다르면 public/admin controller를 분리한다.
@@ -36,7 +36,7 @@
 - 실제 FK 관계로 묶인 데이터는 repository가 `populate`한 결과를 받아 쓰고, 다른 도메인 서비스 호출이나 단순 ID property 기반 외부 데이터 조합은 service가 맡는다.
 - 복합 write 작업의 트랜잭션 경계가 되는 경우가 많다.
 - **`@Transactional()` 내부에서 `eventEmitter.emit()`을 호출하지 않는다.** 이벤트 핸들러가 fork한 EntityManager가 커밋 전 트랜잭션 커넥션을 공유하여 `Transaction is already committed` 에러를 유발한다. DB 작업은 private `@Transactional()` 메서드로 분리하고, 이벤트는 트랜잭션 완료 후 public 메서드에서 발행한다.
-- `@Transactional`은 `@mikro-orm/decorators/legacy`에서 import한다 (`11-query-strategy.md` 참조).
+- `@Transactional`은 `@mikro-orm/decorators/legacy`에서 import한다 (`10-query-strategy.md` 참조).
 - 유스케이스 내부 보조 로직은 우선 서비스의 `private` 메서드로 두고, 재사용 가능한 순수 함수나 독립 책임이 생길 때만 바깥으로 분리한다.
 
 ### Service 분리 패턴
@@ -63,7 +63,7 @@ OrderDetailService; // 단건 상세 조회, 하위 항목 계층 조립
 도메인 정책 판단(접근 권한, 상태 전이 가능 여부 등)이 서비스에서 반복되면 `*.policy.ts`로 분리한다.
 
 ```typescript
-// note.policy.ts — 팀 소유권 등 엔티티 단위 규칙은 ResourcePolicy를 상속한다 (06-access-control.md)
+// note.policy.ts — 팀 소유권 등 엔티티 단위 규칙은 ResourcePolicy를 상속한다 (05-access-control.md)
 @Injectable()
 export class NotePolicy extends ResourcePolicy<Note> {
   canUpdate(actor: AuthSubject, note: Note): boolean {
@@ -248,7 +248,7 @@ softDeleted.autoSync = false;
 
 - request DTO는 validation/transformation을 담당한다.
 - response DTO는 엔티티를 API 응답 형태로 매핑한다.
-- frontend가 OpenAPI 기반 클라이언트(예: orval)로 DTO 이름을 직접 보게 되므로, DTO 클래스명은 모듈 내부 문맥이 아니라 API 계약 기준으로 짓는다 (`07-naming-and-style.md`).
+- frontend가 OpenAPI 기반 클라이언트(예: orval)로 DTO 이름을 직접 보게 되므로, DTO 클래스명은 모듈 내부 문맥이 아니라 API 계약 기준으로 짓는다 (`06-naming-and-style.md`).
 - request/response DTO 클래스명은 전역에서 충돌하지 않도록 `행위 + 대상 + 필요 시 수식어 + Request/Response` 형식을 기본값으로 쓴다.
   - 예: `GetNoteListRequest`, `CreateNoteRequest`, `ValidateTokenResponse`
 - 중첩 응답이나 재사용되는 읽기 전용 응답 조각은 `대상 + Data/ItemData/SummaryData/DetailData` 형식을 쓴다.
@@ -409,11 +409,11 @@ async addComment(noteId: number, content: string, authorId: number): Promise<Not
 
 1. 같은 aggregate / 같은 ORM relation이면 **repository + `populate`**
 2. 다른 도메인 / scalar ID 참조면 **service orchestration** (또는 다른 도메인의 ReadService)
-3. 조합 조회가 반복되고 복잡해지면 repository를 비대하게 만들기보다 별도 ReadService 또는 Kysely ReadModel을 검토 (`11-query-strategy.md`)
+3. 조합 조회가 반복되고 복잡해지면 repository를 비대하게 만들기보다 별도 ReadService 또는 Kysely ReadModel을 검토 (`10-query-strategy.md`)
 
 ### Raw SQL / 복잡 조회 가이드라인
 
-ORM의 QueryBuilder로 표현하기 어려운 복잡한 집계 쿼리나 대시보드 조회는 Kysely ReadModel로 작성하는 것을 기본으로 한다(`11-query-strategy.md`). 불가피하게 `em.getConnection().execute()`를 쓸 때는:
+ORM의 QueryBuilder로 표현하기 어려운 복잡한 집계 쿼리나 대시보드 조회는 Kysely ReadModel로 작성하는 것을 기본으로 한다(`10-query-strategy.md`). 불가피하게 `em.getConnection().execute()`를 쓸 때는:
 
 - raw SQL은 **읽기 전용 조회에만** 사용한다. write 작업은 반드시 ORM을 통한다.
 - raw SQL을 사용하는 메서드는 repository 또는 read service에 둔다. service에 직접 두지 않는다.

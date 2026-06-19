@@ -17,7 +17,7 @@
 
 - **레벨**: `LOG_LEVEL` env(`debug|info|warn|error`)를 NestJS 레벨로 매핑(`info`→`log`). 해당 레벨 이상만 출력.
 - **포맷**: 모든 출력에 `[functionName:lineNumber][traceSign] message`를 prepend한다. caller는 스택 트레이스에서, `traceSign`은 `ContextStorage.getCurrnetContextSign()`(OTel traceId 우선)에서 가져온다.
-- **사용**: 쓰기/orchestration 서비스·핸들러에 인스턴스를 둔다. 추적 식별자(`orderId`, `userId` 등)를 메시지에 포함한다(`07-naming-and-style.md`). 민감값은 `LogSanitizer`(`src/common/utils/log-sanitizer.ts`) 기준을 따른다.
+- **사용**: 쓰기/orchestration 서비스·핸들러에 인스턴스를 둔다. 추적 식별자(`orderId`, `userId` 등)를 메시지에 포함한다(`06-naming-and-style.md`). 민감값은 `LogSanitizer`(`src/common/utils/log-sanitizer.ts`) 기준을 따른다.
 - **ORM 로그**: `OrmLogger`(`src/core/logger/orm-logger.ts`)가 MikroORM 쿼리 로그를 레벨별로 Nest Logger에 위임한다.
 
 ## 요청 컨텍스트 — `ContextStorage`
@@ -56,7 +56,7 @@
 - 응답을 **통일된 에러 형태**로 만든다(`src/common/exceptions`의 `HttpException` 래퍼 경유). 출력은 항상 `LogSanitizer.sanitize()`를 거친다.
 - **상세 디버그**(stack/body/path 등)는 `RESPONSE_DEBUG_DETAIL=true`일 때만 응답에 포함. 운영에선 끈다.
 - 처리되지 않은 `Error`는 500 + `Internal server error`로 정규화하고, 내부적으로 stack을 로깅한다.
-- 도메인 코드는 인라인 예외 대신 `exception/` 팩토리 상수를 던진다(`05-layer-responsibility.md`, CLAUDE.md #3). 필터가 그 형태를 그대로 직렬화한다.
+- 도메인 코드는 인라인 예외 대신 `exception/` 팩토리 상수를 던진다(`04-layer-responsibility.md`, CLAUDE.md #3). 필터가 그 형태를 그대로 직렬화한다.
 
 ## 관련 환경 변수
 

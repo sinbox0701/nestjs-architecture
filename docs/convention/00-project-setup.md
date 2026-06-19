@@ -186,7 +186,7 @@ node scripts/check-entity-migration.mjs --warn  # 엔티티↔마이그레이션
 ```
 
 - **드리프트 체크가 가장 앞**이다 (base 대비 `*.entity.ts` 변경에 마이그레이션 누락이면 차단). 로컬 husky는 경고(비차단)지만 CI는 차단.
-- **`dep:check`(dependency-cruiser)가 build 앞**에 있다. 모듈 경계 위반(`03-module-rules.md`)을 빌드 전에 차단한다.
+- **`dep:check`(dependency-cruiser)가 build 앞**에 있다. 모듈 경계 위반(`02-module-rules.md`)을 빌드 전에 차단한다.
 - **lint:check가 build보다 앞에 위치**한다. 린트 실패 시 빌드를 기다리지 않고 빠르게 실패한다.
 - `pnpm lint:check`는 `--fix` 없이 실행되므로, 위반이 있으면 PR이 실패한다.
 - GitHub-hosted runner를 사용한다 (self-hosted 아님).

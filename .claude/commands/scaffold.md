@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: 04-module-patterns.md 기반으로 새 모듈/서브도메인의 파일 뼈대를 자동 생성한다.
+description: 03-module-patterns.md 기반으로 새 모듈/서브도메인의 파일 뼈대를 자동 생성한다.
 argument-hint: '<module-path> [--pattern compact|role-folder]'
 ---
 
@@ -17,7 +17,7 @@ $ARGUMENTS 를 아래 규칙으로 해석한다.
 
 ## 사전 준비
 
-docs/convention/04-module-patterns.md 와 docs/convention/07-naming-and-style.md 를 읽는다.
+docs/convention/03-module-patterns.md 와 docs/convention/06-naming-and-style.md 를 읽는다.
 
 경로 분석:
 
@@ -63,8 +63,8 @@ repository.ts: @Injectable() export class <Repository> extends BaseRepository<<E
 
 ## 규칙
 
-- docs/convention/04-module-patterns.md의 모듈 인벤토리 테이블에 새 모듈을 추가한다
-- 네이밍은 docs/convention/07-naming-and-style.md를 따른다
+- docs/convention/03-module-patterns.md의 모듈 인벤토리 테이블에 새 모듈을 추가한다
+- 네이밍은 docs/convention/06-naming-and-style.md를 따른다
 - Entity는 반드시 static create() 팩토리를 포함한다
 - Exception은 반드시 팩토리 상수 패턴을 따른다
 - 빈 폴더에는 .gitkeep을 넣는다

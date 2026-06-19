@@ -1,10 +1,10 @@
 ---
 name: test
-description: 09-testing.md 컨벤션 기반으로 테스트 코드를 작성/보완한다.
+description: 08-testing.md 컨벤션 기반으로 테스트 코드를 작성/보완한다.
 argument-hint: '<BE-XXX | spec_path | test_type module-name>'
 ---
 
-테스트 코드를 작성하거나 보완한다. docs/convention/09-testing.md 컨벤션 기반.
+테스트 코드를 작성하거나 보완한다. docs/convention/08-testing.md 컨벤션 기반.
 
 ## 인자 해석
 
@@ -21,7 +21,7 @@ argument-hint: '<BE-XXX | spec_path | test_type module-name>'
 
 ## 사전 준비
 
-1. docs/convention/09-testing.md 읽기.
+1. docs/convention/08-testing.md 읽기.
 2. src/modules/<module-name>/ 소스 코드 분석.
 3. 기존 테스트 확인 (tests/<module-name>/ 아래).
 4. 소스 코드 로직 검증 — 이슈 보고 후 진행 여부 확인.
@@ -72,7 +72,7 @@ pnpm test:e2e -- tests/<module>/e2e/
 
 ## 규칙
 
-- docs/convention/09-testing.md 패턴 반드시 따른다
+- docs/convention/08-testing.md 패턴 반드시 따른다
 - 레이어별 중복 검증 금지
 - 잘못 분류된 .e2e-spec.ts 발견 시 .spec.ts로 리네이밍 제안
 - 테스트 작성 후 반드시 실행하여 통과 여부 확인

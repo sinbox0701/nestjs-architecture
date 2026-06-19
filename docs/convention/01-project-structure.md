@@ -44,7 +44,7 @@ src/
 - `base/` — `BaseEntity`, `BaseRepository`, 공통 응답 래퍼 `R.*`
 - `config/` — `runtime-env.ts` (APP_ENV 헬퍼, 환경 판별 함수)
 - `constants/` — Redis 키, 이벤트 관련 상수
-- `decorators/` — `Public`(인증 스킵), `IsBool`, `IsDateOrDateString`. 접근제어 데코레이터(`@Requires`, `@CurrentUser`)는 `lib/access-control`에 있다(`06-access-control.md`)
+- `decorators/` — `Public`(인증 스킵), `IsBool`, `IsDateOrDateString`. 접근제어 데코레이터(`@Requires`, `@CurrentUser`)는 `lib/access-control`에 있다(`05-access-control.md`)
 - `exceptions/` — 공통 HTTP 예외 기반 클래스
 - `types/` — JSON, 공용 타입
 - `utils/` — 시간, 비밀번호, 로그 마스킹 유틸
@@ -70,4 +70,4 @@ src/
 
 ### `src/modules`
 
-비즈니스 도메인 모듈을 배치하는 최상위 디렉터리다. 현재는 비어 있으며, 새 도메인을 추가할 때 이 아래에 생성한다. 모듈 구조 패턴은 `04-module-patterns.md`를 참조한다.
+비즈니스 도메인 모듈을 배치하는 최상위 디렉터리다. `auth`·`identity`(User/Team/Role)가 RBAC+ABAC 레퍼런스로 들어 있다. 새 도메인은 이 아래에 생성하며 `identity`를 본보기로 삼는다. 모듈 구조 패턴은 `03-module-patterns.md`를 참조한다.

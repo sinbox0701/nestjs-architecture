@@ -190,7 +190,7 @@ export class GetOrderListRequest extends IntersectionType(OffsetPageQuery, Keywo
 ```
 
 - 쿼리스트링→숫자/불리언 변환은 전역 `ValidationPipe`(`enableImplicitConversion`)가 처리하므로 `@Type`을 controller에서 수동으로 붙이지 않는다.
-- 오프셋 vs 커서 선택 기준은 `11-query-strategy.md` 참조(임의 페이지 점프 필요 → offset, 무한 스크롤/대용량 → cursor).
+- 오프셋 vs 커서 선택 기준은 `10-query-strategy.md` 참조(임의 페이지 점프 필요 → offset, 무한 스크롤/대용량 → cursor).
 - 베이스 DTO 자체는 endpoint에 직접 노출하지 않으므로 `행위+대상` 네이밍 규칙의 예외다(조합용 mixin).
 
 ## 접근 제어
@@ -198,7 +198,7 @@ export class GetOrderListRequest extends IntersectionType(OffsetPageQuery, Keywo
 - 접근 제어는 `src/lib/access-control/`의 `@Requires(action, resourceType)` 데코레이터와 `PolicyGuard`(Tier1), `ResourcePolicy`(Tier2)를 사용한다.
 - 액션은 `Action` enum(`create` / `read` / `update` / `delete` / `manage`)으로 정의하며, 도메인 특화 액션은 `ActionLike`(문자열)로 확장한다.
 - 전역 역할은 `GlobalRole` enum(`SUPER`)을 사용한다. 팀 내 직위는 도메인에서 문자열(`TeamMembership.role`)로 정의한다.
-- 상세 규칙은 `06-access-control.md`를 참조한다.
+- 상세 규칙은 `05-access-control.md`를 참조한다.
 
 ## import 규칙
 

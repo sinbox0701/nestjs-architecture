@@ -20,7 +20,7 @@ $ARGUMENTS 를 아래 규칙으로 해석한다.
 ## 사전 준비
 
 1. 대상 엔티티를 읽는다: `src/**/entity/*.entity.ts`. 필드, 타입, **nullable/unique/enum 제약**, **관계(@ManyToOne 등)와 방향**을 파악한다. 엔티티가 없으면 먼저 `/scaffold`로 모듈을 만들라고 안내하고 중단한다.
-2. `src/lib/database/setup-mock.ts`, `src/lib/database/seed/seed.util.ts`(`withOrm`), `docs/convention/09-testing.md`, `docs/convention/11-query-strategy.md` 를 읽는다.
+2. `src/lib/database/setup-mock.ts`, `src/lib/database/seed/seed.util.ts`(`withOrm`), `docs/convention/08-testing.md`, `docs/convention/10-query-strategy.md` 를 읽는다.
 3. 비밀번호/해시 필드가 있으면 `argon2`로 해싱한다(평문 저장 금지).
 
 ## 데이터 의도 확인 (가장 중요)

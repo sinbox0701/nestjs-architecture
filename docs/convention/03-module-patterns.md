@@ -9,7 +9,7 @@
 - **DO**: 기존 모듈 수정 시 해당 모듈의 로컬 스타일 유지
 - **DON'T**: 새 모듈에서 기존 모듈과 다른 패턴을 임의로 도입
 - `dto/`, `entity/`, `exception/`, `type/`은 항상 폴더로 유지
-- **dto/ 스타일 통일**: 모든 패턴에서 행위별 bundled `.dto.ts` 사용 (상세: `05-layer-responsibility.md` DTO 파일 작성 규칙)
+- **dto/ 스타일 통일**: 모든 패턴에서 행위별 bundled `.dto.ts` 사용 (상세: `04-layer-responsibility.md` DTO 파일 작성 규칙)
 - backend-template는 현재 모듈이 없는 스타터 상태다. 새 도메인을 추가할 때 아래 패턴 중 하나를 선택한다.
 
 ---

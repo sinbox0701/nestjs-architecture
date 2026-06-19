@@ -58,7 +58,7 @@ down(): void { this.addSql(역방향SQL); }
 
 SQL 규칙: 테이블명/컬럼명 쌍따옴표. up()/down() 항상 쌍.
 
-#### Idempotent SQL 필수 (docs/convention/10-deployment.md)
+#### Idempotent SQL 필수 (docs/convention/09-deployment.md)
 
 ✅ CREATE INDEX IF NOT EXISTS, ALTER TABLE ... ADD COLUMN IF NOT EXISTS, DROP INDEX IF EXISTS
 ❌ Non-idempotent 패턴 금지
@@ -80,5 +80,5 @@ SQL 규칙: 테이블명/컬럼명 쌍따옴표. up()/down() 항상 쌍.
 
 - migration 테이블: backend_template_migrations
 - 테스트 DB: backend_template_test
-- Idempotent SQL 필수. docs/convention/10-deployment.md 참조.
+- Idempotent SQL 필수. docs/convention/09-deployment.md 참조.
 - 생성 후 반드시 pnpm migration:verify 로 검증한다.
