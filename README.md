@@ -7,6 +7,23 @@
 > 전체 정리본(상세 가이드): [Backend Template Guide (Notion)](https://app.notion.com/p/Backend-Template-Guide-38385e04e98280df8d31e6ccf9d1b28e)
 > 단일 진실 출처는 항상 repo다 — 문서와 코드가 어긋나면 `docs/convention/`·`CLAUDE.md`를 따른다.
 
+## 목차
+
+1. [기술 스택](#기술-스택)
+2. [핵심 설계 결정](#핵심-설계-결정-왜-이렇게)
+3. [빠른 시작](#빠른-시작)
+4. [프로젝트 구조 & 폴더 원칙](#프로젝트-구조--폴더-원칙)
+5. [모듈 내부 구조](#모듈-내부-구조)
+6. [아키텍처 핵심](#아키텍처-핵심)
+7. [레퍼런스 모듈: auth + identity](#레퍼런스-모듈-auth--identity)
+8. [개발 워크플로 (SDD)](#개발-워크플로-sdd)
+9. [하네스 엔지니어링 (.claude/)](#하네스-엔지니어링-claude)
+10. [운영 (CI/CD)](#운영-cicd)
+11. [개발 스크립트](#개발-스크립트)
+12. [문서](#문서)
+
+---
+
 ## 기술 스택
 
 | 항목            | 기술                  | 비고                                                                |
@@ -15,7 +32,7 @@
 | Language        | TypeScript (strict)   |                                                                     |
 | Framework       | NestJS 11             | SWC 빌드                                                            |
 | ORM             | MikroORM v7           | Unit of Work, **legacy 데코레이터**(`@mikro-orm/decorators/legacy`) |
-| DB / Cache      | PostgreSQL / Redis    | Redis는 graceful degradation(`safe`\* 메서드)                       |
+| DB / Cache      | PostgreSQL / Redis    | Redis는 graceful degradation(`safe` 메서드)                         |
 | Auth            | JWT(HS256) + argon2id | AT 15m + RT 7d(rotation), httpOnly 쿠키, Redis blocklist            |
 | Config          | zod typed config      | 부팅 시 env 검증                                                    |
 | Package Manager | pnpm 10               | corepack                                                            |
@@ -53,27 +70,68 @@ pnpm start:dev        # 개발 서버 (watch + type-check + SWC, 기동 전 Swag
 
 ```text
 backend-template/
-  src/            애플리케이션 코드
-  tests/          3계층 테스트 (unit/integration/e2e + _utils)
-  docs/           컨벤션 / PRD / 기술부채 문서
-  scripts/        빌드·검증·자동화 스크립트
-  migrations/     DB 마이그레이션 (backend_template_migrations 테이블)
-  .claude/        AI 협업 하네스 (커맨드·에이전트·훅·설정)
-  .github/        CI 워크플로
+├── src/            애플리케이션 코드
+├── tests/          3계층 테스트 (unit/integration/e2e + _utils)
+├── docs/           컨벤션 / PRD / 기술부채 문서
+├── scripts/        빌드·검증·자동화 스크립트
+├── migrations/     DB 마이그레이션 (backend_template_migrations 테이블)
+├── .claude/        AI 협업 하네스 (커맨드·에이전트·훅·설정)
+└── .github/        CI 워크플로
 ```
 
 ### `src/` 레이어 — 의존 방향은 위→아래만
 
 ```text
 src/
-  main.ts            엔트리포인트 (require 순서: reflect-metadata → tracing → bootstrap)
-  bootstrap.ts       Nest 앱 초기화 (전역 필터/파이프/CORS/helmet/throttle/shutdown)
-  app.module.ts      루트 모듈 (전역 가드/인터셉터/인프라·도메인 모듈 등록)
-  config/            zod 환경변수 스키마 + 네임스페이스 config
-  common/            순수 유틸·base·예외·데코레이터·타입·validator (도메인 모름)
-  core/              앱 전역 인프라 (auth guard·logger·filters·interceptors·tracing·cron)
-  lib/               외부 시스템 연동 (access-control·database·redis·mail·storage)
-  modules/           비즈니스 도메인 — auth, identity(레퍼런스). 새 도메인은 여기에.
+├── main.ts                  # 엔트리포인트 (require 순서: reflect-metadata → tracing → bootstrap)
+├── bootstrap.ts             # Nest 앱 초기화 (전역 필터/파이프/CORS/helmet/throttle/shutdown)
+├── app.module.ts            # 루트 모듈 (전역 가드/인터셉터 + 인프라·도메인 모듈 등록)
+├── config/                  # zod 환경변수 스키마 + 네임스페이스 config
+├── common/                  # DI 없이 import만으로 쓰는 순수 유틸 (도메인 모름)
+│   ├── base/                #   BaseEntity, BaseRepository, 응답 래퍼 R.*
+│   ├── config/              #   공통 설정 헬퍼
+│   ├── constants/           #   전역 상수
+│   ├── decorators/          #   @Public() 등 공통 데코레이터
+│   ├── exceptions/          #   HTTP 예외 베이스 (exception 팩토리의 토대)
+│   ├── types/               #   공용 타입
+│   ├── utils/               #   쿠키·시간·마스킹 등 단일 유틸
+│   └── validator/           #   공통 검증 로직
+├── core/                    # 앱 전역 DI 인프라 (도메인 모름, lib만 의존 허용)
+│   ├── auth/                #   전역 AuthGuard (Tier0 인증 + blocklist)
+│   ├── cron/                #   크론 잡 추상 베이스
+│   ├── filters/             #   전역 예외 필터 (통일 에러 포맷)
+│   ├── interceptors/        #   요청 컨텍스트·통일 응답 인터셉터
+│   ├── logger/              #   FrameworkLogger (console.* 금지)
+│   └── tracing/             #   OpenTelemetry 트레이싱
+├── lib/                     # 외부 시스템 연동 인프라
+│   ├── access-control/      #   RBAC+ABAC 엔진 (가드/데코레이터/정책 베이스/평가기)
+│   ├── database/            #   MikroORM 설정·네이밍 전략·시드·마이그레이션 러너
+│   ├── redis/               #   Redis 클라이언트 (graceful degradation safe*)
+│   ├── session/             #   세션 관리
+│   ├── mail/                #   메일 발송 (기본 콘솔 드라이버)
+│   └── storage/             #   파일 스토리지 (기본 noop 드라이버)
+└── modules/                 # 비즈니스 도메인 — 새 도메인은 여기에
+    ├── auth/                #   인증(토큰/세션) — Compact Feature 예시
+    └── identity/            #   User/Team/Role — Role-Folder + RBAC+ABAC 레퍼런스
+```
+
+### 새 코드를 어디 둘지 (배치 기준)
+
+1. DI 없이 import만으로 재사용 가능한 순수 유틸인가? → `common/`
+2. 앱 전역에서 쓰는 가드·인터셉터·로거·필터·크론인가? → `core/`
+3. DB·Redis·Mail·Storage·외부 시스템 연동인가? → `lib/`
+4. 특정 비즈니스 유스케이스인가? → `modules/<domain>/`
+
+### 의존성 방향
+
+```mermaid
+flowchart TD
+    Modules[modules/ 도메인] --> Core[core/ 앱 인프라]
+    Modules --> Lib[lib/ 외부 인프라]
+    Modules --> Common[common/ 순수 유틸]
+    Core --> Lib
+    Core --> Common
+    Lib --> Common
 ```
 
 **폴더 배치 원칙** (상세: [01-project-structure](docs/convention/01-project-structure.md), [02-module-rules](docs/convention/02-module-rules.md)):
@@ -87,13 +145,81 @@ src/
 
 ```text
 tests/
-  unit/**/*.spec.ts                      단위 (DB 불필요, pnpm test)
-  integration/**/*.integration.spec.ts   통합 (실제 DB, --runInBand)
-  e2e/**/*.e2e-spec.ts                   E2E (앱 부팅/경량, 실제 파이프라인)
-  _utils/                                테스트 하네스 (ORM 헬퍼, test-auth.guard, setup)
+├── unit/**/*.spec.ts                      # 단위 (DB 불필요, pnpm test)
+├── integration/**/*.integration.spec.ts   # 통합 (실제 DB, --runInBand)
+├── e2e/**/*.e2e-spec.ts                    # E2E (앱 부팅/경량, 실제 파이프라인)
+└── _utils/                                 # 테스트 하네스 (ORM 헬퍼, test-auth.guard, setup)
 ```
 
 통합/e2e는 `backend_template_test` DB(`.env.test`, committed)에 연결. 상세·주의사항(jest 엔티티 명시 주입, fork-truncate 등): [08-testing](docs/convention/08-testing.md).
+
+---
+
+## 모듈 내부 구조
+
+각 도메인 모듈(`modules/<domain>/`)은 규모에 따라 **Compact Feature** 또는 **Role-Folder** 패턴을 쓴다.
+같은 역할 파일이 2개 이상이면 그 역할만 폴더로 승격한다. 패턴 선택 기준: [03-module-patterns](docs/convention/03-module-patterns.md).
+
+### Compact Feature — 작은 도메인 (실제: `modules/auth/`)
+
+```text
+modules/auth/
+├── auth.module.ts
+├── auth.controller.ts
+├── auth.service.ts
+├── auth-cookie.service.ts      # 보조 서비스 (httpOnly 쿠키)
+├── token.service.ts            # AT/RT 발급·검증
+├── refresh-token.store.ts      # RT family rotation (Redis)
+├── user-credential.port.ts     # DIP 포트 — identity가 어댑터로 구현
+├── auth.constants.ts
+├── dto/                        # Request/Response DTO
+└── exception/                  # 도메인 예외 팩토리
+```
+
+### Role-Folder — 규모가 큰 도메인 (실제: `modules/identity/`)
+
+```text
+modules/identity/
+├── identity.module.ts
+├── controller/                 # HTTP 계층
+├── service/                    # 비즈니스 로직 + 접근제어 Tier2 호출
+├── repository/                 # 데이터 접근 계층
+├── entity/                     # MikroORM 엔티티 (User/Team/Role)
+├── dto/                        # Request/Response DTO
+├── access/                     # Tier1 매트릭스 + Tier2 ResourcePolicy
+├── enum/                       # enum, 상수
+└── exception/                  # 도메인 예외 팩토리
+```
+
+### 레이어별 역할
+
+| 레이어         | 역할                    | 포함 요소                                       |
+| -------------- | ----------------------- | ----------------------------------------------- |
+| **Controller** | HTTP 요청/응답 처리     | 라우팅, 인증/인가 데코레이터, DTO 바인딩        |
+| **Service**    | 비즈니스 로직, 트랜잭션 | orchestration, 예외 처리, 이벤트 발행, 접근제어 |
+| **Repository** | 데이터 영속화           | 조회, 필터, 페이지네이션, populate              |
+| **Entity**     | 스키마 + 상태 변경      | 정적 팩토리(`create()`), 캡슐화된 수정 메서드   |
+
+### 데이터 흐름
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Controller
+    participant Service
+    participant Repository
+    participant DB as PostgreSQL
+
+    Client->>Controller: HTTP Request
+    Controller->>Service: service.method(actor, dto)
+    Service->>Service: 접근제어 (Tier2 authorize)
+    Service->>Repository: repository.findOne()
+    Repository->>DB: SQL Query
+    DB-->>Repository: Row
+    Repository-->>Service: Entity
+    Service-->>Controller: Entity
+    Controller-->>Client: R.data(Response DTO)
+```
 
 ---
 
@@ -126,7 +252,7 @@ tests/
 
 ### 관측성 & 전역 파이프라인
 
-- **로깅**: `FrameworkLogger`(`console.`\* 금지) — `[caller:line][traceId]` 자동 prefix.
+- **로깅**: `FrameworkLogger`(`console.` 금지) — `[caller:line][traceId]` 자동 prefix.
 - **트레이싱**: OpenTelemetry(trace 전용). `OTEL_ENABLED=true`일 때 활성. traceId가 로그·응답 헤더(`x-trace-id`)에 동일하게 박혀 로그↔트레이스↔클라이언트가 한 id로 연결.
 - **전역 인터셉터/필터**: 요청 컨텍스트 생성·전파, 통일 응답/에러 포맷(민감값 마스킹). 상세: [12-observability](docs/convention/12-observability.md).
 
@@ -219,16 +345,57 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 
 ---
 
-## 구성요소 (인프라 lib)
+## 개발 스크립트
 
-| `lib/`             | 내용                                                     |
-| ------------------ | -------------------------------------------------------- |
-| `access-control`   | RBAC+ABAC 엔진(가드/데코레이터/정책 베이스/평가기)       |
-| `database`         | MikroORM 설정·네이밍 전략·시드·마이그레이션 러너         |
-| `redis`            | Redis 클라이언트 (graceful degradation `safe`\*)         |
-| `mail` / `storage` | 기본 no-op 드라이버(콘솔/noop). 도메인에서 provider 연결 |
+### 개발 서버 & 빌드
 
-설정은 `config/`의 zod 스키마로 검증, 네임스페이스 config로 주입. 상세: [07-env-setup](docs/convention/07-env-setup.md).
+| 스크립트           | 설명                                                             |
+| ------------------ | ---------------------------------------------------------------- |
+| `pnpm start:dev`   | 개발 서버 (watch + type-check + SWC, 기동 전 metadata 자동 생성) |
+| `pnpm start:debug` | 디버그 모드 개발 서버                                            |
+| `pnpm start:prod`  | prod 런타임으로 `dist/main.js` 실행                              |
+| `pnpm build`       | 프로덕션 빌드 (nest build + metadata SWC 컴파일)                 |
+| `pnpm typecheck`   | 타입 체크 (`tsc --noEmit`)                                       |
+| `pnpm metadata`    | Swagger 메타데이터(`src/metadata.ts`) 생성                       |
+
+### 마이그레이션 & 데이터
+
+| 스크립트                 | 설명                                    |
+| ------------------------ | --------------------------------------- |
+| `pnpm migration:create`  | 엔티티 변경 기준 마이그레이션 생성      |
+| `pnpm migration:verify`  | 임시 Docker DB에서 마이그레이션 dry-run |
+| `pnpm migration:up`      | 마이그레이션 실행                       |
+| `pnpm migration:down`    | 마이그레이션 롤백                       |
+| `pnpm migration:list`    | 적용된 마이그레이션 목록                |
+| `pnpm migration:pending` | 미실행 마이그레이션 확인                |
+| `pnpm migration:fresh`   | 전체 재실행 (로컬 초기화용)             |
+| `pnpm seed`              | core 시드 실행                          |
+| `pnpm mock:seed`         | faker mock 시드 (dev 전용)              |
+
+### 코드 품질 & 테스트
+
+| 스크립트                | 설명                                  |
+| ----------------------- | ------------------------------------- |
+| `pnpm lint`             | ESLint 검사 (자동 수정)               |
+| `pnpm lint:check`       | ESLint 검사 (수정 없음, CI용)         |
+| `pnpm format`           | Prettier 포맷팅                       |
+| `pnpm format:check`     | Prettier 포맷 검사 (CI용)             |
+| `pnpm dep:check`        | 레이어 경계 검사 (dependency-cruiser) |
+| `pnpm test`             | 단위 테스트 (DB 불필요)               |
+| `pnpm test:watch`       | 단위 테스트 watch 모드                |
+| `pnpm test:cov`         | 테스트 커버리지 리포트                |
+| `pnpm test:integration` | 통합 테스트 (실제 DB, 순차 실행)      |
+| `pnpm test:e2e`         | E2E 테스트 (앱 부팅, 순차 실행)       |
+
+### 로컬 인프라 (Docker)
+
+| 스크립트               | 설명                            |
+| ---------------------- | ------------------------------- |
+| `pnpm docker:up`       | PostgreSQL + Redis (+ app) 시작 |
+| `pnpm docker:up:build` | 이미지 재빌드 후 시작           |
+| `pnpm docker:logs`     | app 로그 follow                 |
+| `pnpm docker:down`     | 컨테이너 중지                   |
+| `pnpm docker:clean`    | 컨테이너 + 볼륨(데이터) 정리    |
 
 ---
 
@@ -242,7 +409,7 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 | [docs/tech-debt/](docs/tech-debt/README.md)   | 의도적으로 미뤄둔 것 + 처리 트리거                     |
 | [.claude/README.md](.claude/README.md)        | AI 협업 하네스 구성                                    |
 
-## 명령어
+## 명령어 (요약)
 
 | 작업                   | 명령                                                            |
 | ---------------------- | --------------------------------------------------------------- |
