@@ -4,7 +4,7 @@
 
 - **프론트 계약 영향**: DTO 클래스명 / controller method명 / DTO 필드 타입은 orval로 프론트 TS 타입/함수명에 **직결**. 리네이밍 = 프론트 breaking change
 - **DTO 파일 스타일**: 행위별 bundled `.dto.ts` (Request + Response를 한 파일에). `.request.ts`/`.response.ts` 분리 금지
-- **DTO 클래스명**: `행위 + 대상 + Request/Response` (예: `CreateOrderRequest`). 중첩 응답은 `대상 + Data` (예: `OrderData`)
+- **DTO 클래스명**: `행위 + 대상 + Request/Response` (예: `CreateUserRequest`). 중첩 응답은 `대상 + Data` (예: `UserData`)
 - **DON'T**: `CreateRequest`, `ListResponse`, `UserDto` 같은 전역에서 의미 약한 이름
 - **메서드명**: `getBy...`(없으면 예외) vs `findBy...`(없으면 null/빈배열). `find...With...`(로딩 의도 표현)
 - **Controller method명**: path scope 안에서 행위만 표현. `create`, `getList`, `getDetail` (도메인명 반복 금지)
@@ -26,14 +26,14 @@
 
 ### 1. DTO 클래스명 → 프론트 TypeScript 타입명
 
-- `class CreateOrderRequest` → 프론트 `type CreateOrderRequest`
+- `class CreateUserRequest` → 프론트 `type CreateUserRequest`
 - **변경 금지**: 이미 프론트가 import해서 쓰고 있는 이름. 리네이밍은 프론트 코드 수정과 동기화 필수
 - **대소문자 그대로**: orval은 DTO 클래스명을 변환 없이 쓴다. `userDto` 같은 잘못된 casing도 그대로 전파되므로 처음부터 PascalCase 정확히
 
 ### 2. Controller method명 → 프론트 API 함수명
 
-- `@Controller('/orders') class OrderController { getList() {} }` → 프론트 `orderControllerGetList()` 류 함수명
-- 도메인명을 반복하면 프론트에서 `orderControllerGetOrderList()` 처럼 중복 네이밍이 된다 → `getList()`처럼 짧게
+- `@Controller('users') class UserController { getList() {} }` → 프론트 `userControllerGetList()` 류 함수명
+- 도메인명을 반복하면 프론트에서 `userControllerGetUserList()` 처럼 중복 네이밍이 된다 → `getList()`처럼 짧게
 - `operationId`를 별도 지정하지 않으므로 controller class명 + method명이 그대로 사용된다
 
 ### 3. DTO 필드 타입 → orval 생성 타입
@@ -74,7 +74,7 @@ class StatusData {
 ## 파일명과 클래스명
 
 - 파일명은 보통 `도메인명 + 역할` 조합을 쓴다.
-- 예: `order.service.ts`, `note.repository.ts`, `order.admin.controller.ts`
+- 예: `user.service.ts`, `user.repository.ts`, `user.controller.ts`
 - 역할 폴더 안에서도 파일명은 도메인명을 포함한다.
 - API에 노출되는 DTO 클래스명은 전역 고유성이 중요하므로, 파일 지역 문맥에 기대지 않고 이름만 보고도 endpoint 목적이 드러나야 한다.
 - request/response DTO 클래스명은 `행위 + 대상 + Request/Response`를 기본으로 하고, nested 응답 타입은 `대상 + Data/...Data` 규칙을 따른다.
@@ -102,17 +102,17 @@ class StatusData {
 ### service method명
 
 - service method명은 **`행위 + 대상`(유스케이스 동사)**으로 짓는다. controller와 달리 도메인명을 포함한다(다른 서비스에서 호출될 때 의미가 드러나야 함).
-  - 권장: `createOrder`, `getOrder`(없으면 예외), `getOrderList`, `updateOrder`, `deleteOrder`, `restoreOrder`, `changeOrderStatus`
-- 조회는 repository와 같은 `getBy`(없으면 예외) / `findBy`(없으면 null) 규칙을 따른다. service의 단건 조회는 보통 존재를 보장하므로 `getOrder`(예외 던짐)가 기본이다.
-- 상태 변경은 동사를 분명히 한다: `changeStatus`, `cancel`, `approve`, `publish`. 두루뭉술한 `process`/`handle`은 피한다.
+  - 권장: `createUser`, `getUser`(없으면 예외), `getUserList`, `updateUser`, `deleteUser`
+- 조회는 repository와 같은 `getBy`(없으면 예외) / `findBy`(없으면 null) 규칙을 따른다. service의 단건 조회는 보통 존재를 보장하므로 `getUser`(예외 던짐)가 기본이다.
+- 상태 변경은 동사를 분명히 한다: `changePosition`, `changePassword`. 두루뭉술한 `process`/`handle`은 피한다.
 
 ### 레이어별 메서드명 요약
 
-| 레이어     | 규칙                                                    | 예                                                                         |
-| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Controller | path scope 안 행위만, 도메인명 반복 X                   | `create`, `getList`, `getDetail`, `update`, `delete`                       |
-| Service    | `행위 + 대상`(유스케이스 동사), 도메인명 포함           | `createOrder`, `getOrder`(예외), `getOrderList`, `changeOrderStatus`       |
-| Repository | `getBy`(예외)/`findBy`(null)/`find...With...`(로딩의도) | `getById`, `findById`, `findByIdWithItems`, `findPage`, `findPageByCursor` |
+| 레이어     | 규칙                                                    | 예                                                                           |
+| ---------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Controller | path scope 안 행위만, 도메인명 반복 X                   | `create`, `getList`, `getDetail`, `update`, `delete`                         |
+| Service    | `행위 + 대상`(유스케이스 동사), 도메인명 포함           | `createUser`, `getUser`(예외), `getUserList`, `updateUser`, `deleteUser`     |
+| Repository | `getBy`(예외)/`findBy`(null)/`find...With...`(로딩의도) | `findById`, `findByEmail`, `findByEmailForAuth`, `searchPage`, `countByTeam` |
 
 ## 메서드 순서
 
@@ -139,15 +139,15 @@ class StatusData {
 
 ```typescript
 // DON'T: | null 패턴
-export class OrderDetailData {
-  buyerEmail!: string | null; // ❌
-  couponCode?: string | null; // ❌ optional + null union도 금지
+export class UserData {
+  email!: string | null; // ❌
+  position?: TeamPosition | null; // ❌ optional + null union도 금지
 }
 
 // DO: optional로 선언
-export class OrderDetailData {
-  buyerEmail?: string; // ✅ 값이 없으면 키 자체를 노출하지 않음
-  couponCode?: string; // ✅
+export class UserData {
+  email!: string; // ✅ 필수 필드는 !: 로 선언
+  position?: TeamPosition; // ✅ 값이 없으면 키 자체를 노출하지 않음
 }
 ```
 
@@ -181,12 +181,9 @@ export class OrderDetailData {
 import { IntersectionType } from '@nestjs/swagger';
 import { OffsetPageQuery, KeywordQuery } from '@/common/base/dto';
 
-// 도메인 특화 필터/정렬만 추가로 선언한다 (sortBy는 도메인 enum이라 베이스에 없음)
-export class GetOrderListRequest extends IntersectionType(OffsetPageQuery, KeywordQuery) {
-  sortBy?: OrderSortBy;
-  sortOrder: SortOrder = SortOrder.DESC;
-  status?: OrderStatus; // 도메인 필터
-}
+// 도메인 특화 필터/정렬만 추가로 선언한다
+// GetUserListRequest는 키워드 검색 + offset 페이지네이션만 필요하므로 베이스 조합으로 충분
+export class GetUserListRequest extends IntersectionType(OffsetPageQuery, KeywordQuery) {}
 ```
 
 - 쿼리스트링→숫자/불리언 변환은 전역 `ValidationPipe`(`enableImplicitConversion`)가 처리하므로 `@Type`을 controller에서 수동으로 붙이지 않는다.
@@ -217,16 +214,15 @@ export class GetOrderListRequest extends IntersectionType(OffsetPageQuery, Keywo
 
 ```typescript
 // DON'T: 서비스 내부 문맥 로직을 기계적으로 helper로 추출
-// order.helper.ts
-export function validateOrderStatus(order: Order) {
-  if (order.status !== 'OPEN') throw ORDER_EXCEPTIONS.ALREADY_CLOSED();
+// user.helper.ts
+export function resolveUserTeam(user: User) {
+  return user.team.id; // → 이 함수는 UserService의 유스케이스 흐름에서만 의미가 있다
 }
-// → 이 함수는 OrderService의 유스케이스 흐름에서만 의미가 있다
 
 // DO: 서비스 내부 private 메서드로 유지
-class OrderService {
-  private validateStatus(order: Order) {
-    if (order.status !== 'OPEN') throw ORDER_EXCEPTIONS.ALREADY_CLOSED();
+class UserService {
+  private toData(user: User): UserData {
+    return { id: user.id, email: user.email, name: user.name, teamId: user.team.id, position: user.position };
   }
 }
 
@@ -237,11 +233,12 @@ export function formatDateRange(start: Date, end: Date): string {
 }
 
 // DO: 의존성 필요 + 독립 책임 → 별도 provider
-// order-policy.service.ts
+// user.resource-policy.ts
 @Injectable()
-class OrderPolicyService {
-  constructor(private readonly configService: ConfigService) {}
-  canCancel(order: Order, actor: Actor): boolean { ... }
+class UserResourcePolicy extends ResourcePolicy<User> {
+  canUpdate(actor: AuthSubject, resource: User): boolean {
+    return this.isTeamOwner(actor, resource) || this.isSelf(actor, resource);
+  }
 }
 ```
 
