@@ -8,7 +8,7 @@ import { UserRepository } from '../repository/user.repository';
 
 /**
  * auth 모듈의 `UserCredentialPort`(DIP)를 User 도메인으로 구현한다.
- * auth는 User 엔티티를 모르고, 이 어댑터가 user→team→authorityTeam을 조회해 AuthIdentity로 변환한다.
+ * auth는 User 엔티티를 모르고, 이 어댑터가 user→team→role을 조회해 AuthIdentity로 변환한다.
  */
 @Injectable()
 export class UserCredentialAdapter implements UserCredentialPort {
@@ -28,12 +28,12 @@ export class UserCredentialAdapter implements UserCredentialPort {
 
   private toIdentity(user: User): AuthIdentity {
     const team = user.team.getEntity(); // populate된 소속팀
-    const authority = team.authorityTeam.getEntity(); // populate된 권한팀
+    const accessRole = team.role.getEntity(); // populate된 역할
     return {
       id: user.id,
       globalRoles: user.globalRoles,
-      authorityTeam: { id: authority.id, name: authority.name },
-      team: { id: team.id, role: user.role },
+      role: { id: accessRole.id, name: accessRole.name },
+      team: { id: team.id, position: user.position },
     };
   }
 }

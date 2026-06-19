@@ -3,56 +3,56 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } fr
 import { ApiDataResponse, ApiPageResponse, R } from '@/common/base/response';
 import { Action, Requires } from '@/lib/access-control';
 
-import { CreateAuthorityTeamRequest } from '../dto/create-authority-team.dto';
-import { AuthorityTeamData, GetAuthorityTeamListRequest } from '../dto/get-authority-team.dto';
-import { UpdateAuthorityTeamRequest } from '../dto/update-authority-team.dto';
-import { AuthorityTeamService } from '../service/authority-team.service';
+import { CreateRoleRequest } from '../dto/create-role.dto';
+import { GetRoleListRequest, RoleData } from '../dto/get-role.dto';
+import { UpdateRoleRequest } from '../dto/update-role.dto';
+import { RoleService } from '../service/role.service';
 
 /**
- * 권한팀(Red/Blue…) 관리. 플랫폼 최상위 권한 구조이므로 SUPER 전용이다.
+ * 역할(Red/Blue…) 관리. 플랫폼 최상위 권한 구조이므로 SUPER 전용이다.
  * (teamId 추출자가 없어 일반 팀 역할로는 통과 못 하고, globalRoles=SUPER만 PolicyGuard를 bypass한다.)
  */
-@Controller('authority-teams')
-export class AuthorityTeamController {
-  constructor(private readonly service: AuthorityTeamService) {}
+@Controller('roles')
+export class RoleController {
+  constructor(private readonly service: RoleService) {}
 
-  /** 권한팀 생성. */
-  @Requires(Action.CREATE, 'authority-team')
+  /** 역할 생성. */
+  @Requires(Action.CREATE, 'role')
   @Post()
-  @ApiDataResponse(AuthorityTeamData, 201)
-  async create(@Body() body: CreateAuthorityTeamRequest) {
-    return R.data(await this.service.createAuthorityTeam(body));
+  @ApiDataResponse(RoleData, 201)
+  async create(@Body() body: CreateRoleRequest) {
+    return R.data(await this.service.createRole(body));
   }
 
-  /** 권한팀 목록. */
-  @Requires(Action.READ, 'authority-team')
+  /** 역할 목록. */
+  @Requires(Action.READ, 'role')
   @Get()
-  @ApiPageResponse(AuthorityTeamData)
-  async getList(@Query() query: GetAuthorityTeamListRequest) {
-    return R.page(await this.service.getAuthorityTeamList(query));
+  @ApiPageResponse(RoleData)
+  async getList(@Query() query: GetRoleListRequest) {
+    return R.page(await this.service.getRoleList(query));
   }
 
-  /** 권한팀 단건. */
-  @Requires(Action.READ, 'authority-team')
+  /** 역할 단건. */
+  @Requires(Action.READ, 'role')
   @Get(':id')
-  @ApiDataResponse(AuthorityTeamData)
+  @ApiDataResponse(RoleData)
   async getDetail(@Param('id') id: number) {
-    return R.data(await this.service.getAuthorityTeam(id));
+    return R.data(await this.service.getRole(id));
   }
 
-  /** 권한팀 수정. */
-  @Requires(Action.UPDATE, 'authority-team')
+  /** 역할 수정. */
+  @Requires(Action.UPDATE, 'role')
   @Patch(':id')
-  @ApiDataResponse(AuthorityTeamData)
-  async update(@Param('id') id: number, @Body() body: UpdateAuthorityTeamRequest) {
-    return R.data(await this.service.updateAuthorityTeam(id, body));
+  @ApiDataResponse(RoleData)
+  async update(@Param('id') id: number, @Body() body: UpdateRoleRequest) {
+    return R.data(await this.service.updateRole(id, body));
   }
 
-  /** 권한팀 삭제(soft). */
-  @Requires(Action.DELETE, 'authority-team')
+  /** 역할 삭제(soft). */
+  @Requires(Action.DELETE, 'role')
   @Delete(':id')
   @HttpCode(204)
   async delete(@Param('id') id: number): Promise<void> {
-    await this.service.deleteAuthorityTeam(id);
+    await this.service.deleteRole(id);
   }
 }

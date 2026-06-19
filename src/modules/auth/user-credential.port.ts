@@ -7,8 +7,8 @@ import { GlobalRole } from '@/lib/access-control';
 export interface AuthIdentity {
   id: number;
   globalRoles: GlobalRole[];
-  authorityTeam: { id: number; name: string }; // 권한팀 (Red/Blue…) name이 Tier1 매트릭스 키
-  team: { id: number; role: string }; // 소속팀 + 역할(LEADER/MEMBER) → Tier2
+  role: { id: number; name: string }; // 접근 역할 (Red/Blue…) name이 Tier1 매트릭스 키
+  team: { id: number; position: string }; // 소속팀 + 직위(LEADER/MEMBER) → Tier2
 }
 
 /**

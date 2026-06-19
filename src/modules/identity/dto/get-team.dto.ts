@@ -8,8 +8,8 @@ export class TeamData {
   id!: number;
   /** 이름 */
   name!: string;
-  /** 상위 권한팀 ID */
-  authorityTeamId!: number;
+  /** 상위 역할 ID */
+  roleId!: number;
 }
 
 /** 소속팀 목록 조회. */

@@ -1,8 +1,8 @@
 import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
-import { TeamRole } from '../enum/team-role.enum';
+import { TeamPosition } from '../enum/team-position.enum';
 
-/** 사용자 수정 요청. 값이 없을 수 있는 필드는 optional(`?:`), `| null` 금지. */
+/** 사용자 수정 요청. */
 export class UpdateUserRequest {
   /** 이름 */
   @IsOptional()
@@ -10,8 +10,8 @@ export class UpdateUserRequest {
   @MinLength(1)
   name?: string;
 
-  /** 소속팀 내 역할 */
+  /** 소속팀 내 직위 */
   @IsOptional()
-  @IsEnum(TeamRole)
-  role?: TeamRole;
+  @IsEnum(TeamPosition)
+  position?: TeamPosition;
 }

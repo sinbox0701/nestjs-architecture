@@ -57,8 +57,8 @@ export class AuthController {
     const { identity } = issued;
     return {
       id: identity.id,
-      authorityTeam: { id: identity.authorityTeam.id, name: identity.authorityTeam.name },
-      team: { id: identity.team.id, role: identity.team.role },
+      role: { id: identity.role.id, name: identity.role.name },
+      team: { id: identity.team.id, position: identity.team.position },
     };
   }
 }

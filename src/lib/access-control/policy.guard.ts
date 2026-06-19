@@ -12,16 +12,16 @@ import { GlobalRole } from './global-role.enum';
 import { REQUIRES_KEY, RequiresMetadata } from './requires.decorator';
 
 /**
- * PolicyGuard (Tier1 RBAC) — JWT claim만으로 판정, DB 호출 없음.
+ * PolicyGuard (Tier1 RBAC) — JWT claim만으로 capability를 판정한다(DB 호출 없음).
  *
  * AuthGuard(인증) 다음 순서로 APP_GUARD에 등록한다. 판정 순서:
  *  1. `@Public()`이면 통과.
  *  2. `@Requires`가 없으면 거부(default-deny).
  *  3. `globalRoles`에 SUPER가 있으면 통과(IAM root bypass).
- *  4. 요청에서 teamId 추출 → `teams`에서 역할 찾기(없으면 거부).
- *  5. `AccessPolicyProvider`로 역할 × 액션 × 리소스 판정.
+ *  4. `AccessPolicyProvider`로 (주체 × 액션 × 리소스) capability 판정.
  *
- * 리소스 소유권 같은 인스턴스 단위 규칙은 가드가 아니라 service의 `ResourcePolicy`(Tier2)에서 본다.
+ * 여기서는 "이 주체의 권한 등급이 이 리소스 타입에 이 액션을 할 수 있나"(클래스 단위)만 본다.
+ * "이 **특정 인스턴스**가 actor 소유인가" 같은 인스턴스 단위 규칙은 service의 `ResourcePolicy`(Tier2)에서 본다.
  */
 @Injectable()
 export class PolicyGuard implements CanActivate {
@@ -58,26 +58,7 @@ export class PolicyGuard implements CanActivate {
     // SUPER 전체 bypass.
     if (user.globalRoles?.includes(GlobalRole.SUPER)) return true;
 
-    const extractTeamId = meta.options?.teamId ?? ((req: Request) => (req.params as Record<string, string>)?.teamId);
-    // 엄격 파싱: Number()의 느슨한 coercion(' 7 ', '7.0', '0x7', '', true 등) 차단.
-    // 정수 문자열 또는 정수 number만 허용해 라우트 teamId와 인가 판정값을 정규화한다.
-    const rawTeamId = extractTeamId(request);
-    const teamId =
-      typeof rawTeamId === 'number' && Number.isInteger(rawTeamId)
-        ? rawTeamId
-        : /^\d+$/.test(String(rawTeamId ?? ''))
-          ? Number(rawTeamId)
-          : NaN;
-    if (!Number.isInteger(teamId)) {
-      throw new ForbiddenException('팀 컨텍스트(teamId)를 확인할 수 없습니다.');
-    }
-
-    const membership = user.teams?.find((t) => t.teamId === teamId);
-    if (!membership) {
-      throw new ForbiddenException('해당 팀에 대한 접근 권한이 없습니다.');
-    }
-
-    if (!this.policy.can(membership.role, meta.action, meta.resourceType)) {
+    if (!this.policy.can(user, meta.action, meta.resourceType)) {
       throw new ForbiddenException('해당 작업을 수행할 권한이 없습니다.');
     }
 

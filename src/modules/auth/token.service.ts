@@ -14,7 +14,7 @@ interface AccessTokenPayload {
   jti: string;
   globalRoles: AuthIdentity['globalRoles'];
   teams: TeamMembership[];
-  authorityTeam: AuthIdentity['authorityTeam'];
+  role: AuthIdentity['role'];
 }
 
 /** Refresh Token 페이로드. family 단위로 rotation/재사용 탐지. */
@@ -42,8 +42,8 @@ export class TokenService {
       sub: identity.id,
       jti,
       globalRoles: identity.globalRoles,
-      teams: [{ teamId: identity.team.id, role: identity.team.role }],
-      authorityTeam: identity.authorityTeam,
+      teams: [{ teamId: identity.team.id, role: identity.team.position }], // teams[].role 슬롯에 직위(position)를 싣는다
+      role: identity.role,
     };
     const token = await this.jwtService.signAsync(payload); // 모듈 기본: secret + JWT_EXPIRES_IN + HS256
     return { token, jti };

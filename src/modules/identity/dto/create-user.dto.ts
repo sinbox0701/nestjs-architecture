@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsInt, IsString, MinLength } from 'class-validator';
 
-import { TeamRole } from '../enum/team-role.enum';
+import { TeamPosition } from '../enum/team-position.enum';
 
 /** 사용자 생성 요청. (응답은 `UserData` — get-user.dto.ts) */
 export class CreateUserRequest {
@@ -22,7 +22,7 @@ export class CreateUserRequest {
   @IsInt()
   teamId!: number;
 
-  /** 소속팀 내 역할 */
-  @IsEnum(TeamRole)
-  role!: TeamRole;
+  /** 소속팀 내 직위 */
+  @IsEnum(TeamPosition)
+  position!: TeamPosition;
 }

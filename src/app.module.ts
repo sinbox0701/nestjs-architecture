@@ -15,12 +15,13 @@ import { AuthGuard } from './core/auth/auth.guard';
 import { FrameworkGlobalInterceptor } from './core/interceptors/framework-global.interceptor';
 import { OtelShutdownService } from './core/tracing/otel-shutdown.service';
 import { HealthController } from './health.controller';
-import { ACCESS_POLICY_PROVIDER, DenyAllAccessPolicyProvider, PolicyGuard } from './lib/access-control';
+import { PolicyGuard } from './lib/access-control';
 import { DatabaseModule } from './lib/database/database.module';
 import { MailModule } from './lib/mail/mail.module';
 import { RedisModule } from './lib/redis/redis.module';
 import { StorageModule } from './lib/storage/storage.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { identityAccessPolicyProvider } from './modules/identity/access/identity-access.provider';
 import { IdentityModule } from './modules/identity/identity.module';
 
 @Module({
@@ -69,9 +70,9 @@ import { IdentityModule } from './modules/identity/identity.module';
   ],
   controllers: [HealthController],
   providers: [
-    // 접근제어 매트릭스 기본값: 전부 거부(default-deny). 도메인 단계에서 ACCESS_POLICY_PROVIDER를
-    // 실제 역할×액션 매트릭스(StaticAccessPolicyProvider 등)로 교체한다.
-    { provide: ACCESS_POLICY_PROVIDER, useClass: DenyAllAccessPolicyProvider },
+    // 접근제어 Tier1 매트릭스: identity 도메인이 역할(Role; Red/Blue) 이름 기반 capability 매트릭스를
+    // 바인딩한다(스타터 기본 DenyAll 교체). 합성 루트가 도메인 정책을 주입하는 지점.
+    identityAccessPolicyProvider,
     { provide: APP_GUARD, useClass: AuthGuard }, // Tier0 인증
     { provide: APP_GUARD, useClass: PolicyGuard }, // Tier1 인가 (RBAC)
     { provide: APP_INTERCEPTOR, useClass: FrameworkGlobalInterceptor },

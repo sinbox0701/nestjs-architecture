@@ -20,9 +20,9 @@ export class TeamRepository extends BaseRepository<Team> {
     return this.findOne({ name });
   }
 
-  /** 해당 권한팀에 속한 활성 소속팀 수(soft-delete 제외). 권한팀 삭제 가드에 사용. */
-  countByAuthority(authorityTeamId: number): Promise<number> {
-    return this.count({ authorityTeam: authorityTeamId });
+  /** 해당 역할에 속한 활성 소속팀 수(soft-delete 제외). 역할 삭제 가드에 사용. */
+  countByAuthority(roleId: number): Promise<number> {
+    return this.count({ role: roleId });
   }
 
   searchPage(query: GetTeamListRequest): Promise<{ list: Team[]; count: number }> {

@@ -6,9 +6,9 @@ import { CreateTeamRequest } from '../dto/create-team.dto';
 import { GetTeamListRequest, TeamData } from '../dto/get-team.dto';
 import { UpdateTeamRequest } from '../dto/update-team.dto';
 import { Team } from '../entity/team.entity';
-import { AUTHORITY_TEAM_EXCEPTIONS } from '../exception/authority-team.exception';
+import { ROLE_EXCEPTIONS } from '../exception/role.exception';
 import { TEAM_EXCEPTIONS } from '../exception/team.exception';
-import { AuthorityTeamRepository } from '../repository/authority-team.repository';
+import { RoleRepository } from '../repository/role.repository';
 import { TeamRepository } from '../repository/team.repository';
 import { UserRepository } from '../repository/user.repository';
 
@@ -18,21 +18,21 @@ export class TeamService {
 
   constructor(
     private readonly repo: TeamRepository,
-    private readonly authorityRepo: AuthorityTeamRepository,
+    private readonly roleRepo: RoleRepository,
     private readonly userRepo: UserRepository,
   ) {}
 
   async createTeam(dto: CreateTeamRequest): Promise<TeamData> {
-    const authorityTeam = await this.authorityRepo.findById(dto.authorityTeamId);
-    if (!authorityTeam) {
-      throw AUTHORITY_TEAM_EXCEPTIONS.NOT_FOUND();
+    const role = await this.roleRepo.findById(dto.roleId);
+    if (!role) {
+      throw ROLE_EXCEPTIONS.NOT_FOUND();
     }
     if (await this.repo.findByName(dto.name)) {
       throw TEAM_EXCEPTIONS.NAME_DUPLICATED();
     }
-    const team = Team.create(dto.name, authorityTeam);
+    const team = Team.create(dto.name, role);
     await this.repo.save(team);
-    this.logger.log(`createTeam id=${team.id} authorityTeamId=${dto.authorityTeamId}`);
+    this.logger.log(`createTeam id=${team.id} roleId=${dto.roleId}`);
     return this.toData(team);
   }
 
@@ -72,7 +72,7 @@ export class TeamService {
   }
 
   private toData(team: Team): TeamData {
-    // authorityTeam은 Ref — ref.id만 사용(미populate 안전).
-    return { id: team.id, name: team.name, authorityTeamId: team.authorityTeam.id };
+    // role은 Ref — ref.id만 사용(미populate 안전).
+    return { id: team.id, name: team.name, roleId: team.role.id };
   }
 }

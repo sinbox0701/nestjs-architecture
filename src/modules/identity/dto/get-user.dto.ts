@@ -2,7 +2,7 @@ import { IntersectionType } from '@nestjs/swagger';
 
 import { KeywordQuery, OffsetPageQuery } from '@/common/base/dto';
 
-import { TeamRole } from '../enum/team-role.enum';
+import { TeamPosition } from '../enum/team-position.enum';
 
 /** 사용자 응답 표준 형태. */
 export class UserData {
@@ -14,8 +14,8 @@ export class UserData {
   name!: string;
   /** 소속팀 ID */
   teamId!: number;
-  /** 소속팀 내 역할 */
-  role!: TeamRole;
+  /** 소속팀 내 직위 */
+  position!: TeamPosition;
 }
 
 /** 사용자 목록 조회 (offset 페이지네이션 + 키워드 검색). */
