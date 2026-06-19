@@ -195,8 +195,9 @@ export class GetOrderListRequest extends IntersectionType(OffsetPageQuery, Keywo
 
 ## 접근 제어
 
-- 접근 제어는 `src/lib/access-control/`의 `@Roles()` 데코레이터와 `RolesGuard`를 사용한다.
-- 역할은 `RoleCode` enum으로 정의한다: `USER`, `ADMIN`, `SUPER`.
+- 접근 제어는 `src/lib/access-control/`의 `@Requires(action, resourceType)` 데코레이터와 `PolicyGuard`(Tier1), `ResourcePolicy`(Tier2)를 사용한다.
+- 액션은 `Action` enum(`create` / `read` / `update` / `delete` / `manage`)으로 정의하며, 도메인 특화 액션은 `ActionLike`(문자열)로 확장한다.
+- 전역 역할은 `GlobalRole` enum(`SUPER`)을 사용한다. 팀 내 직위는 도메인에서 문자열(`TeamMembership.role`)로 정의한다.
 - 상세 규칙은 `06-access-control.md`를 참조한다.
 
 ## import 규칙

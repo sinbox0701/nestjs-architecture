@@ -1,7 +1,7 @@
 # Backend Template
 
 도메인 비종속 NestJS 백엔드 스타터 (NestJS 11 + MikroORM v7 + PostgreSQL + Redis).
-새 도메인은 `src/modules/` 아래에 추가한다 (현재 비어 있음).
+새 도메인은 `src/modules/` 아래에 추가한다 (`auth`·`identity`가 RBAC+ABAC 레퍼런스 구현으로 들어 있음).
 
 ## 기술 스택
 

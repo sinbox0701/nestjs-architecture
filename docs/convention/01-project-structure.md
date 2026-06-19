@@ -25,10 +25,10 @@ src/
   common/                  ← 순수 유틸, 상수, 데코레이터
   core/                    ← 앱 전역 DI 인프라
   lib/                     ← 외부 시스템 연동 모듈
-  modules/                 ← 비즈니스 도메인 (현재 비어 있음)
+  modules/                 ← 비즈니스 도메인 (auth, identity 레퍼런스 구현)
 ```
 
-> `src/modules/`는 현재 `.gitkeep`만 있는 상태다. 새 도메인 모듈은 이 아래에 추가한다.
+> `src/modules/`에는 `auth`·`identity`(User/Team/Role)가 RBAC+ABAC 레퍼런스로 들어 있다. 새 도메인 모듈은 이 아래에 추가하며, `identity`를 본보기로 삼는다.
 
 새 코드를 어디에 둘지 판단할 때는 아래 순서를 따른다.
 
@@ -61,7 +61,7 @@ src/
 
 ### `src/lib`
 
-- `access-control/` — RBAC: `@Roles()` 데코레이터, `RolesGuard`, `RoleCode` (USER / ADMIN / SUPER)
+- `access-control/` — 팀 스코프 RBAC+ABAC 엔진: `@Requires(action, resourceType)` 데코레이터, `PolicyGuard`(Tier1), `ResourcePolicy`(Tier2), `Action` enum, `GlobalRole` enum(SUPER), `AuthSubject` 타입
 - `database/` — MikroORM 설정, DB 모듈, 시더
 - `redis/` — Redis 클라이언트
 - `mail/` — 메일 발송 (현재 no-op 스켈레톤)

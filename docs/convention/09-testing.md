@@ -47,7 +47,7 @@ backend-template의 테스트는 **단위(Unit)**, **통합(Integration)**, **E2
 | MikroORM FilterQuery, soft delete, 날짜 조건 등    | 통합 테스트 (real DB)  |
 | Repository 쿼리 정확성 (필터, JOIN, 페이지네이션)  | 통합 테스트 (real DB)  |
 | 트랜잭션, cascade, unique 제약조건                 | 통합 테스트 (real DB)  |
-| DTO Validation Pipe, Auth Guard, RolesGuard 동작   | E2E 테스트 (supertest) |
+| DTO Validation Pipe, Auth Guard, PolicyGuard 동작  | E2E 테스트 (supertest) |
 | API 응답 포맷 (`R.data`, `R.page` 구조)            | E2E 테스트 (supertest) |
 
 ### 레이어별 중복 검증 방지
@@ -243,11 +243,11 @@ describe('NoteService (Integration)', () => {
 
 ## 3. E2E 테스트 (supertest)
 
-`supertest`로 HTTP 요청을 보내 NestJS 파이프라인 전체를 검증한다. **Unit/Integration에서 검증할 수 없는 것**만 E2E에서 테스트한다: Validation Pipe, AuthGuard(401), RolesGuard(403), 응답 포맷, 에러 응답 구조.
+`supertest`로 HTTP 요청을 보내 NestJS 파이프라인 전체를 검증한다. **Unit/Integration에서 검증할 수 없는 것**만 E2E에서 테스트한다: Validation Pipe, AuthGuard(401), PolicyGuard(403), 응답 포맷, 에러 응답 구조.
 
 ### 경량 패턴 (기본)
 
-개별 Controller + mock Service를 등록하고, `TestAuthGuard`로 인증을 시뮬레이션한다. 기본 `TestAuthGuard`(`tests/_utils/testing-modules/test-auth.guard.ts`)는 항상 통과시키며 `request.user = { id: 1, roles: [RoleCode.ADMIN] }`를 주입한다. 다른 역할을 검증해야 하면 테스트에서 별도 가드(또는 헤더 기반 가드)를 정의한다.
+개별 Controller + mock Service를 등록하고, `TestAuthGuard`로 인증을 시뮬레이션한다. 기본 `TestAuthGuard`(`tests/_utils/testing-modules/test-auth.guard.ts`)는 항상 통과시키며 `request.user = { id: 1, jti: 'test', globalRoles: [GlobalRole.SUPER], teams: [] }`를 주입한다. `GlobalRole.SUPER`이므로 `PolicyGuard`(Tier1)도 bypass된다. 특정 팀 역할을 검증해야 하면 테스트에서 직접 `AuthSubject`를 구성하거나 별도 가드를 정의한다.
 
 ```typescript
 import { TestAuthGuard } from '@test-utils/testing-modules/test-auth.guard';
@@ -256,7 +256,7 @@ const moduleRef = await Test.createTestingModule({
   controllers: [NoteController, NoteAdminController],
   providers: [
     { provide: APP_GUARD, useClass: TestAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PolicyGuard },
     { provide: NoteService, useValue: buildMockNoteService() },
     Reflector,
   ],
@@ -289,12 +289,12 @@ await request(app.getHttpServer()).post('/admin/notes').send({ title: '제목', 
 ```typescript
 // ❌ 하드코딩
 expect(note.status).toBe('DONE');
-request(app).set('x-test-role', 'USER');
+expect(actor.globalRoles[0]).toBe('SUPER');
 
 // ✅ enum import
-import { RoleCode } from '@/lib/access-control';
+import { GlobalRole } from '@/lib/access-control';
 expect(note.status).toBe(NoteStatus.DONE);
-request(app).set('x-test-role', RoleCode.USER);
+expect(actor.globalRoles).toContain(GlobalRole.SUPER);
 ```
 
 ### 테스트 설명 언어
