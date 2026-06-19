@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@/common/exceptions';
 
-import { Action } from './action.enum';
+import { Action, ActionLike } from './action.enum';
 import { AuthSubject } from './auth-subject.type';
 import { GlobalRole } from './global-role.enum';
 
@@ -26,8 +26,12 @@ export abstract class ResourcePolicy<TEntity extends TeamScoped> {
   abstract canUpdate(actor: AuthSubject, resource: TEntity): boolean;
   abstract canDelete(actor: AuthSubject, resource: TEntity): boolean;
 
-  /** 인스턴스 액션(READ/UPDATE/DELETE) 인가. 거부 시 ForbiddenException. SUPER는 bypass. */
-  authorize(actor: AuthSubject, action: Action.READ | Action.UPDATE | Action.DELETE, resource: TEntity): void {
+  /**
+   * 인스턴스 액션 인가. 거부 시 ForbiddenException. SUPER는 bypass.
+   * 기본은 CRUD(READ/UPDATE/DELETE)를 canRead/canUpdate/canDelete로 매핑한다.
+   * 커스텀 액션(예: `'order:cancel'`)은 **default-deny**이며, 도메인이 이 메서드를 오버라이드해 처리한다.
+   */
+  authorize(actor: AuthSubject, action: ActionLike, resource: TEntity): void {
     if (this.isSuper(actor)) return;
 
     const allowed =
@@ -35,7 +39,9 @@ export abstract class ResourcePolicy<TEntity extends TeamScoped> {
         ? this.canRead(actor, resource)
         : action === Action.UPDATE
           ? this.canUpdate(actor, resource)
-          : this.canDelete(actor, resource);
+          : action === Action.DELETE
+            ? this.canDelete(actor, resource)
+            : false; // 커스텀 액션: 베이스는 모름 → 거부(도메인 오버라이드 필요)
 
     if (!allowed) {
       throw new ForbiddenException('해당 리소스에 대한 권한이 없습니다.');
@@ -80,7 +86,7 @@ export async function loadAndAuthorize<TEntity extends TeamScoped>(
   loader: (id: number) => Promise<TEntity>,
   policy: ResourcePolicy<TEntity>,
   actor: AuthSubject,
-  action: Action.READ | Action.UPDATE | Action.DELETE,
+  action: ActionLike,
   id: number,
 ): Promise<TEntity> {
   const entity = await loader(id);

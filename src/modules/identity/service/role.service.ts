@@ -49,7 +49,7 @@ export class RoleService {
 
   async deleteRole(id: number): Promise<void> {
     const role = await this.getOrThrow(id);
-    if ((await this.teamRepo.countByAuthority(id)) > 0) {
+    if ((await this.teamRepo.countByRole(id)) > 0) {
       throw ROLE_EXCEPTIONS.HAS_TEAMS();
     }
     await this.repo.cascadeSoftDeleteAndFlush(role);

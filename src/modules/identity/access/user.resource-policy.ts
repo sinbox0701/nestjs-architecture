@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { ForbiddenException } from '@/common/exceptions';
 import { AuthSubject, ResourcePolicy } from '@/lib/access-control';
 
 import { User } from '../entity/user.entity';
 import { TeamPosition } from '../enum/team-position.enum';
+import { USER_EXCEPTIONS } from '../exception/user.exception';
 
 /**
  * UserResourcePolicy (Tier2 ABAC) — 로드된 User 인스턴스에 대한 소유권/역할 판정.
@@ -39,11 +39,11 @@ export class UserResourcePolicy extends ResourcePolicy<User> {
     return this.isTeamOwner(actor, resource) && !this.isSelf(actor, resource);
   }
 
-  /** 역할 변경 인가. 거부 시 ForbiddenException. SUPER는 bypass. */
+  /** 역할 변경 인가. 거부 시 예외(도메인 팩토리). SUPER는 bypass. */
   authorizeChangeRole(actor: AuthSubject, resource: User): void {
     if (this.isSuper(actor)) return;
     if (!(this.isTeamOwner(actor, resource) && !this.isSelf(actor, resource))) {
-      throw new ForbiddenException('역할을 변경할 권한이 없습니다.');
+      throw USER_EXCEPTIONS.ROLE_CHANGE_FORBIDDEN();
     }
   }
 

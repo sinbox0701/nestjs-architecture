@@ -17,9 +17,11 @@ import { Action, AuthSubject, RoleActionMatrix, RoleResolver } from '@/lib/acces
  * 역할은 런타임 CRUD 대상이라 새 역할은 이 코드 매트릭스에 항목이 없어 default-deny된다.
  * 런타임 편집이 필요하면 DB 오버레이 구현으로 `ACCESS_POLICY_PROVIDER`를 교체한다(스타터 범위 밖).
  */
+// 키는 **대문자 정규화**된 역할 이름. resolver가 role.name을 toUpperCase()하므로 "Red"/"red"/"RED"가
+// 모두 매칭된다 — casing 불일치로 인한 조용한 default-deny(풋건)를 방지한다.
 export const IDENTITY_ROLE_MATRIX: RoleActionMatrix = {
-  Red: { user: [Action.MANAGE] },
-  Blue: { user: [Action.READ] },
+  RED: { user: [Action.MANAGE] },
+  BLUE: { user: [Action.READ] },
 };
 
 /** JWT에 실린 역할 정보(토큰 payload → AuthSubject로 spread됨). */
@@ -27,8 +29,8 @@ interface WithAccessRole {
   role?: { name?: string };
 }
 
-/** 주체의 역할 이름을 매트릭스 키로 추출한다. 없으면 빈 배열 → default-deny. */
+/** 주체의 역할 이름을 매트릭스 키로 추출(대문자 정규화). 없으면 빈 배열 → default-deny. */
 export const resolveAccessRoles: RoleResolver = (subject: AuthSubject): string[] => {
   const name = (subject as WithAccessRole).role?.name;
-  return name ? [name] : [];
+  return name ? [name.toUpperCase()] : [];
 };

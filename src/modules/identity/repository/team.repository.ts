@@ -21,7 +21,7 @@ export class TeamRepository extends BaseRepository<Team> {
   }
 
   /** 해당 역할에 속한 활성 소속팀 수(soft-delete 제외). 역할 삭제 가드에 사용. */
-  countByAuthority(roleId: number): Promise<number> {
+  countByRole(roleId: number): Promise<number> {
     return this.count({ role: roleId });
   }
 

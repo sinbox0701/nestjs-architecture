@@ -6,6 +6,11 @@ import { BaseRepository } from '@/common/base/base.repository';
 import { GetUserListRequest } from '../dto/get-user.dto';
 import { User } from '../entity/user.entity';
 
+/** 목록 조회 스코프(Tier2). `teamIds`가 주어지면 해당 소속팀들로 제한한다. */
+export interface UserSearchScope {
+  teamIds?: number[];
+}
+
 /**
  * User 저장소. `@Injectable` + `super(em, User)`로 자체 생성한다(엔티티 데코레이터 바인딩 없음
  * → entity↔repository 순환 회피). 요청 컨텍스트는 MikroORM RequestContext가 fork로 처리.
@@ -42,13 +47,13 @@ export class UserRepository extends BaseRepository<User> {
 
   /**
    * 키워드 검색 + offset 페이지네이션. BaseRepository.findPage({list,count})를 재사용.
-   * `scope.teamId`가 주어지면 해당 소속팀으로 제한한다(Tier2 목록 스코프 — cross-team 노출 방지).
+   * `scope.teamIds`가 주어지면 해당 소속팀들로 제한한다(Tier2 목록 스코프 — cross-team 노출 방지).
    * leading-wildcard `%q%`는 인덱스를 못 탄다 — 소규모 가정. 대용량은 trigram/FTS 검토(11-query-strategy).
    */
-  searchPage(query: GetUserListRequest, scope?: { teamId?: number }): Promise<{ list: User[]; count: number }> {
+  searchPage(query: GetUserListRequest, scope?: UserSearchScope): Promise<{ list: User[]; count: number }> {
     const where: FilterQuery<User> = {};
     if (query.q) where.name = { $ilike: `%${query.q}%` };
-    if (scope?.teamId !== undefined) where.team = scope.teamId;
+    if (scope?.teamIds !== undefined) where.team = { $in: scope.teamIds };
     return this.findPage(where, {
       offset: query.offset,
       limit: query.limit,

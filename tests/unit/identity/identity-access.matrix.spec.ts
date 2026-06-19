@@ -7,8 +7,9 @@ function subjectWithRole(name?: string): AuthSubject {
 }
 
 describe('resolveAccessRoles — 매트릭스 키 추출', () => {
-  it('역할 이름을 키로 추출한다', () => {
-    expect(resolveAccessRoles(subjectWithRole('Red'))).toEqual(['Red']);
+  it('역할 이름을 대문자 정규화해 키로 추출한다', () => {
+    expect(resolveAccessRoles(subjectWithRole('Red'))).toEqual(['RED']);
+    expect(resolveAccessRoles(subjectWithRole('blue'))).toEqual(['BLUE']); // 소문자도 매칭
   });
 
   it('역할이 없으면 빈 배열(→ default-deny)', () => {

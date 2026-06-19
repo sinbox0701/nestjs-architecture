@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { ForbiddenException } from '@/common/exceptions';
 import { PasswordUtil } from '@/common/utils/password.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { Action, AuthSubject, GlobalRole, loadAndAuthorize } from '@/lib/access-control';
@@ -47,24 +48,32 @@ export class UserService {
     return this.toData(user);
   }
 
-  /** 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능. */
+  /**
+   * 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능.
+   * cross-team 접근은 NOT_FOUND로 마스킹한다 — 403(타팀 존재) vs 404(없음) 차이가 존재 오라클이 되므로.
+   */
   async getUser(actor: AuthSubject, id: number): Promise<UserData> {
-    const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
-    return this.toData(user);
+    try {
+      const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
+      return this.toData(user);
+    } catch (e) {
+      if (e instanceof ForbiddenException) throw USER_EXCEPTIONS.NOT_FOUND();
+      throw e;
+    }
   }
 
-  /** 목록은 actor의 소속팀으로 스코프(SUPER는 전체). cross-team 정보 노출 방지. */
+  /** 목록은 actor의 소속팀(들)으로 스코프(SUPER는 전체). cross-team 정보 노출 방지. */
   async getUserList(actor: AuthSubject, query: GetUserListRequest): Promise<{ list: UserData[]; count: number }> {
     if (this.isSuper(actor)) {
       const { list, count } = await this.userRepo.searchPage(query);
       return { list: list.map((u) => this.toData(u)), count };
     }
-    // non-SUPER는 반드시 소속팀으로 제한. 팀이 없으면(이론상 도달 불가) 빈 결과 — 전체 노출 차단.
-    const teamId = actor.teams[0]?.teamId;
-    if (teamId === undefined) {
+    // non-SUPER는 반드시 소속팀(들)으로 제한. 팀이 없으면(이론상 도달 불가) 빈 결과 — 전체 노출 차단.
+    const teamIds = actor.teams.map((t) => t.teamId);
+    if (teamIds.length === 0) {
       return { list: [], count: 0 };
     }
-    const { list, count } = await this.userRepo.searchPage(query, { teamId });
+    const { list, count } = await this.userRepo.searchPage(query, { teamIds });
     return { list: list.map((u) => this.toData(u)), count };
   }
 

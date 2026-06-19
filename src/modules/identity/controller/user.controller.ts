@@ -14,14 +14,14 @@ import { UserService } from '../service/user.service';
  */
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly service: UserService) {}
 
   /** 사용자 생성. (Tier2: 대상 팀의 팀장만) */
   @Requires(Action.CREATE, 'user')
   @Post()
   @ApiDataResponse(UserData, 201)
   async create(@CurrentUser() actor: AuthSubject, @Body() body: CreateUserRequest) {
-    return R.data(await this.userService.createUser(actor, body));
+    return R.data(await this.service.createUser(actor, body));
   }
 
   /** 사용자 목록 조회. (Tier2: 자기 소속팀으로 스코프, SUPER는 전체) */
@@ -29,7 +29,7 @@ export class UserController {
   @Get()
   @ApiPageResponse(UserData)
   async getList(@CurrentUser() actor: AuthSubject, @Query() query: GetUserListRequest) {
-    return R.page(await this.userService.getUserList(actor, query));
+    return R.page(await this.service.getUserList(actor, query));
   }
 
   /** 사용자 단건 조회. (Tier2: 같은 소속팀) */
@@ -37,7 +37,7 @@ export class UserController {
   @Get(':id')
   @ApiDataResponse(UserData)
   async getDetail(@CurrentUser() actor: AuthSubject, @Param('id') id: number) {
-    return R.data(await this.userService.getUser(actor, id));
+    return R.data(await this.service.getUser(actor, id));
   }
 
   /** 사용자 수정. (Tier2: 팀장은 팀원/본인은 프로필, 역할 변경은 팀장만) */
@@ -45,7 +45,7 @@ export class UserController {
   @Patch(':id')
   @ApiDataResponse(UserData)
   async update(@CurrentUser() actor: AuthSubject, @Param('id') id: number, @Body() body: UpdateUserRequest) {
-    return R.data(await this.userService.updateUser(actor, id, body));
+    return R.data(await this.service.updateUser(actor, id, body));
   }
 
   /** 사용자 삭제(soft). (Tier2: 팀장만, 본인 제외) */
@@ -53,6 +53,6 @@ export class UserController {
   @Delete(':id')
   @HttpCode(204)
   async delete(@CurrentUser() actor: AuthSubject, @Param('id') id: number): Promise<void> {
-    await this.userService.deleteUser(actor, id);
+    await this.service.deleteUser(actor, id);
   }
 }
