@@ -163,18 +163,14 @@ export class UserResourcePolicy extends ResourcePolicy<User> {
 ```
 
 ```ts
-// user.service.ts — 로드+인가를 loadAndAuthorize로 묶는다
+// user.service.ts — 로드+인가를 loadAndAuthorize로 묶는다. cross-team이면 authorize가 403을 던진다.
 async getUser(actor: AuthSubject, id: number): Promise<UserData> {
-  try {
-    const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
-    return this.toData(user);
-  } catch (e) {
-    // cross-team read는 403이 아니라 NOT_FOUND로 마스킹(403/404 존재 오라클 제거)
-    if (e instanceof ForbiddenException) throw USER_EXCEPTIONS.NOT_FOUND();
-    throw e;
-  }
+  const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
+  return this.toData(user);
 }
 ```
+
+> **403 vs 404**: 기본은 403(REST 관례, "권한 없음"을 명확히 전달)이다. 단 **리소스 존재 자체가 민감하고 ID가 추측 가능**(순차 정수 등)하면 403↔404 차이가 열거(enumeration) 오라클이 된다 — 이 경우에 한해 read 인가 실패를 `NOT_FOUND`로 마스킹(GitHub의 private repo 방식)하는 것을 검토한다. 마스킹은 "권한없음 vs 없음"을 못 가려 DX 비용이 있으니 기본값으로 깔지 않는다.
 
 목록은 service에서 actor의 소속팀(들)으로 스코프한다(SUPER는 전체) — cross-team 정보 노출 방지.
 
@@ -212,7 +208,7 @@ async getUser(actor: AuthSubject, id: number): Promise<UserData> {
 엔진의 default-deny 코어는 견고하지만, **신뢰 경계와 Tier2 적용은 도메인 구현자가 지켜야** 안전하다.
 
 1. **발급자 계약 (가장 중요)** — `teams`/`globalRoles`/`role`은 JWT claim이고 엔진은 무조건 신뢰한다. 토큰 발급자(로그인)는 이 값을 **반드시 서버 측 DB 상태에서만** 채운다. 클라이언트 입력(가입 body의 role 등)을 토큰/엔티티에 복사하면 즉시 권한 상승이다. identity는 `CreateUserRequest`에 `globalRoles`/`role` 필드를 두지 않고 `User.create`가 `globalRoles`를 항상 `[]`로 만들어 이를 차단한다. `SUPER`는 전체 bypass이므로 **보호된 관리자 출처에서만** 부여한다.
-2. **인스턴스 라우트(`:id`)는 Tier2 필수** — Tier1은 capability 등급만 본다. 대상 리소스가 actor 소유인지는 보지 않으므로, `:id` 라우트는 **반드시** service에서 `loadAndAuthorize(...)`를 호출한다. 빠뜨리면 cross-team IDOR가 가능하다. read 인가 실패는 NOT_FOUND로 마스킹해 존재 오라클을 막는다.
+2. **인스턴스 라우트(`:id`)는 Tier2 필수** — Tier1은 capability 등급만 본다. 대상 리소스가 actor 소유인지는 보지 않으므로, `:id` 라우트는 **반드시** service에서 `loadAndAuthorize(...)`를 호출한다. 빠뜨리면 cross-team IDOR가 가능하다. (인가 실패는 기본 403. 존재가 민감하고 ID가 추측 가능하면 read를 404로 마스킹하는 옵션을 검토.)
 3. **시크릿 하드닝** — `JWT_SECRET`·`REFRESH_TOKEN_SECRET`·`SESSION_SECRET`은 prod/stage에서 약한값/기본값/AT=RT 동일이 부팅 거부된다(`env.schema.ts`). HS256 대칭키라 인가 모델 전체가 시크릿 무결성에 달려 있다 — crown jewel로 관리.
 4. **blocklist는 fail-open** — Redis 장애 시 강제 로그아웃이 무력화된다. access token TTL을 짧게(15분) 유지한다. 즉시 무효화가 critical하면 `REDIS_REQUIRED=true` + fail-closed 검토.
 5. **`jti` 필수** — `jti` 없는 토큰은 무효화 불가 → `AuthGuard`가 **거부**한다. 발급자는 모든 토큰에 `jti`를 넣는다.

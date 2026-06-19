@@ -15,7 +15,7 @@
 | Language        | TypeScript (strict)   |                                                                     |
 | Framework       | NestJS 11             | SWC 빌드                                                            |
 | ORM             | MikroORM v7           | Unit of Work, **legacy 데코레이터**(`@mikro-orm/decorators/legacy`) |
-| DB / Cache      | PostgreSQL / Redis    | Redis는 graceful degradation(`safe*` 메서드)                        |
+| DB / Cache      | PostgreSQL / Redis    | Redis는 graceful degradation(`safe`\* 메서드)                       |
 | Auth            | JWT(HS256) + argon2id | AT 15m + RT 7d(rotation), httpOnly 쿠키, Redis blocklist            |
 | Config          | zod typed config      | 부팅 시 env 검증                                                    |
 | Package Manager | pnpm 10               | corepack                                                            |
@@ -126,7 +126,7 @@ tests/
 
 ### 관측성 & 전역 파이프라인
 
-- **로깅**: `FrameworkLogger`(`console.*` 금지) — `[caller:line][traceId]` 자동 prefix.
+- **로깅**: `FrameworkLogger`(`console.`\* 금지) — `[caller:line][traceId]` 자동 prefix.
 - **트레이싱**: OpenTelemetry(trace 전용). `OTEL_ENABLED=true`일 때 활성. traceId가 로그·응답 헤더(`x-trace-id`)에 동일하게 박혀 로그↔트레이스↔클라이언트가 한 id로 연결.
 - **전역 인터셉터/필터**: 요청 컨텍스트 생성·전파, 통일 응답/에러 포맷(민감값 마스킹). 상세: [13-observability](docs/convention/13-observability.md).
 
@@ -156,7 +156,7 @@ tests/
 
 - **Tier1 매트릭스**(`access/identity-access.matrix.ts`): `RED → user:manage`, `BLUE → user:read`. 키는 대문자 정규화.
 - **Tier2 정책**(`access/user.resource-policy.ts`): READ=같은 팀 / CREATE=대상 팀 팀장 / UPDATE=팀장 또는 본인 / DELETE=팀장(본인 제외) / 직위 변경=팀장(본인 제외, self-escalation 차단).
-- 목록은 소속팀으로 스코프, cross-team 단건 조회는 NOT_FOUND로 마스킹(존재 오라클 제거).
+- 목록은 소속팀으로 스코프, cross-team 단건 조회는 403(기본; 존재 민감 리소스는 404 마스킹 옵션).
 - 테이블: `users`/`teams`/`roles` (예약어 회피 복수형), `email`/`name` **partial unique**(soft-delete 후 재사용 허용).
 
 ---
@@ -215,7 +215,7 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 | 로컬              | `dev`          | 엔티티 auto-sync                       |
 | 스테이징/프로덕션 | `stage`/`prod` | migration guard + 시크릿 하드닝 게이트 |
 
-> **`APP_ENV`를 모든 배포에 명시**한다. 시크릿 하드닝(약한 `JWT_SECRET`/`REFRESH_TOKEN_SECRET`·`COOKIE_SECURE`·`RESPONSE_DEBUG_DETAIL`·`TRUST_PROXY`)은 prod/stage에서만 작동한다.
+> `**APP_ENV`를 모든 배포에 명시\*\*한다. 시크릿 하드닝(약한 `JWT_SECRET`/`REFRESH_TOKEN_SECRET`·`COOKIE_SECURE`·`RESPONSE_DEBUG_DETAIL`·`TRUST_PROXY`)은 prod/stage에서만 작동한다.
 
 ---
 
@@ -225,7 +225,7 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 | ------------------ | -------------------------------------------------------- |
 | `access-control`   | RBAC+ABAC 엔진(가드/데코레이터/정책 베이스/평가기)       |
 | `database`         | MikroORM 설정·네이밍 전략·시드·마이그레이션 러너         |
-| `redis`            | Redis 클라이언트 (graceful degradation `safe*`)          |
+| `redis`            | Redis 클라이언트 (graceful degradation `safe`\*)         |
 | `mail` / `storage` | 기본 no-op 드라이버(콘솔/noop). 도메인에서 provider 연결 |
 
 설정은 `config/`의 zod 스키마로 검증, 네임스페이스 config로 주입. 상세: [08-env-setup](docs/convention/08-env-setup.md).

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { ForbiddenException } from '@/common/exceptions';
 import { PasswordUtil } from '@/common/utils/password.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { Action, AuthSubject, GlobalRole, loadAndAuthorize } from '@/lib/access-control';
@@ -49,17 +48,12 @@ export class UserService {
   }
 
   /**
-   * 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능.
-   * cross-team 접근은 NOT_FOUND로 마스킹한다 — 403(타팀 존재) vs 404(없음) 차이가 존재 오라클이 되므로.
+   * 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능. cross-team 접근은 403(Forbidden).
+   * 참고: 리소스 존재 자체가 민감하고 ID가 추측 가능하면(열거 오라클 우려) 403→404 마스킹을 검토한다.
    */
   async getUser(actor: AuthSubject, id: number): Promise<UserData> {
-    try {
-      const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
-      return this.toData(user);
-    } catch (e) {
-      if (e instanceof ForbiddenException) throw USER_EXCEPTIONS.NOT_FOUND();
-      throw e;
-    }
+    const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
+    return this.toData(user);
   }
 
   /** 목록은 actor의 소속팀(들)으로 스코프(SUPER는 전체). cross-team 정보 노출 방지. */

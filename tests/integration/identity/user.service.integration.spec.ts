@@ -112,10 +112,8 @@ describe('UserService (Integration)', () => {
       position: TeamPosition.MEMBER,
     });
     const outsider = actor(1003, teamB.id, TeamPosition.LEADER);
-    // cross-team read는 403이 아니라 NOT_FOUND로 마스킹된다(존재 오라클 제거).
-    await expect(service.getUser(outsider, target.id)).rejects.toMatchObject({
-      response: { error: { code: 'USER_NOT_FOUND' } },
-    });
+    // cross-team read는 Tier2 authorize에서 거부(403).
+    await expect(service.getUser(outsider, target.id)).rejects.toThrow('해당 리소스에 대한 권한이 없습니다');
   });
 
   it('목록은 actor의 소속팀으로 스코프되고, SUPER는 전체를 본다', async () => {
