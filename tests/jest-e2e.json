@@ -6,7 +6,21 @@
   "testMatch": ["<rootDir>/**/*.e2e-spec.ts"],
   "testPathIgnorePatterns": ["/node_modules/"],
   "moduleNameMapper": { "^@/(.*)$": "<rootDir>/../src/$1", "^@test-utils/(.*)$": "<rootDir>/_utils/$1" },
-  "transformIgnorePatterns": ["node_modules/(?!(\\.pnpm/(@mikro-orm|@faker-js|kysely).*|(@mikro-orm|@faker-js|kysely))/)"],
-  "transform": { "^.+\\.(t|j)sx?$": ["@swc/jest", { "jsc": { "parser": { "syntax": "typescript", "decorators": true }, "transform": { "legacyDecorator": true, "decoratorMetadata": true }, "target": "es2022" }, "module": { "type": "commonjs" } }] },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(\\.pnpm/(@mikro-orm|@faker-js|kysely).*|(@mikro-orm|@faker-js|kysely))/)"
+  ],
+  "transform": {
+    "^.+\\.(t|j)sx?$": [
+      "@swc/jest",
+      {
+        "jsc": {
+          "parser": { "syntax": "typescript", "decorators": true },
+          "transform": { "legacyDecorator": true, "decoratorMetadata": true },
+          "target": "es2022"
+        },
+        "module": { "type": "commonjs" }
+      }
+    ]
+  },
   "testTimeout": 30000
 }

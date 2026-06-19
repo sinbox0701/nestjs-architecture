@@ -56,10 +56,11 @@ module.exports = {
     {
       name: 'no-common-to-app-layers',
       comment:
-        'common은 core/lib에 의존하지 않는 순수 레이어가 이상적이다. 현재 일부 결합(로거/타입)이 있어 ' +
-        'warn으로 표면화한다. 새 코드에서 늘리지 말 것.',
+        'common은 core/lib에 의존하지 않는 순수 레이어가 이상적이다. 런타임 결합만 거버넌스하며, ' +
+        '앰비언트 타입 증강(*.d.ts: 예) express Request.user에 AuthSubject 주입)은 런타임 결합이 ' +
+        '아니므로 제외한다. 새 코드에서 런타임 결합을 늘리지 말 것.',
       severity: 'warn',
-      from: { path: '^src/common/' },
+      from: { path: '^src/common/', pathNot: '\\.d\\.ts$' },
       to: { path: '^src/(core|lib)/' },
     },
   ],

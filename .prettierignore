@@ -1,0 +1,13 @@
+# 생성물·산출물
+dist
+coverage
+node_modules
+src/metadata.ts
+
+# 잠금 파일·자동 생성 파일 (prettier 대상 아님)
+pnpm-lock.yaml
+migrations/.snapshot-*.json
+
+# 인프라/데이터
+.data
+.husky/_
