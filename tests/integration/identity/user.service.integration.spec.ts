@@ -1,3 +1,4 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 
 import { AuthSubject, GlobalRole } from '@/lib/access-control';
@@ -53,7 +54,13 @@ describe('UserService (Integration)', () => {
     // 격리: 같은 fork 커넥션에서 truncate 후 seed flush가 한 트랜잭션으로 커밋되게 한다.
     // (throwaway fork로 truncate하면 미flush로 롤백되어 안 지워짐 — truncateAll 헬퍼의 알려진 한계)
     await em.getConnection().execute('TRUNCATE TABLE "users", "teams", "roles" RESTART IDENTITY CASCADE');
-    service = new UserService(new UserRepository(em), new TeamRepository(em), new UserResourcePolicy());
+    // EventEmitter2는 발행만(핸들러 미등록) — createUser의 USER_CREATED emit이 no-op으로 흘러간다.
+    service = new UserService(
+      new UserRepository(em),
+      new TeamRepository(em),
+      new UserResourcePolicy(),
+      new EventEmitter2(),
+    );
 
     const role = Role.create('Red');
     teamA = Team.create('Team A', role);

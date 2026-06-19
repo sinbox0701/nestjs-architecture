@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { PasswordUtil } from '@/common/utils/password.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
@@ -9,6 +10,8 @@ import { CreateUserRequest } from '../dto/create-user.dto';
 import { GetUserListRequest, UserData } from '../dto/get-user.dto';
 import { UpdateUserRequest } from '../dto/update-user.dto';
 import { User } from '../entity/user.entity';
+import { IdentityEvent } from '../event/identity-event.constant';
+import { UserCreatedEvent } from '../event/user-created.event';
 import { TEAM_EXCEPTIONS } from '../exception/team.exception';
 import { USER_EXCEPTIONS } from '../exception/user.exception';
 import { TeamRepository } from '../repository/team.repository';
@@ -26,6 +29,7 @@ export class UserService {
     private readonly userRepo: UserRepository,
     private readonly teamRepo: TeamRepository,
     private readonly policy: UserResourcePolicy,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createUser(actor: AuthSubject, dto: CreateUserRequest): Promise<UserData> {
@@ -44,6 +48,9 @@ export class UserService {
     const user = User.create({ email: dto.email, passwordHash, name: dto.name, team, position: dto.position });
     await this.userRepo.save(user);
     this.logger.log(`createUser id=${user.id} email=${user.email} teamId=${dto.teamId} by=${String(actor.id)}`);
+    // 핵심 write 완료 후 발행. 후속 작업(알림 등)은 핸들러로 분리(비동기 연결).
+    // @Transactional 내부였다면 커밋 이후에 emit해야 한다. 참조: docs/convention/02-module-rules.md
+    this.eventEmitter.emit(IdentityEvent.USER_CREATED, new UserCreatedEvent(user.id, user.email, user.team.id));
     return this.toData(user);
   }
 
