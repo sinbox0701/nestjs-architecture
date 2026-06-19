@@ -17,6 +17,7 @@ import { OtelShutdownService } from './core/tracing/otel-shutdown.service';
 import { HealthController } from './health.controller';
 import { PolicyGuard } from './lib/access-control';
 import { DatabaseModule } from './lib/database/database.module';
+import { KyselyModule } from './lib/database/kysely/kysely.module';
 import { MailModule } from './lib/mail/mail.module';
 import { RedisModule } from './lib/redis/redis.module';
 import { StorageModule } from './lib/storage/storage.module';
@@ -61,6 +62,7 @@ import { IdentityModule } from './modules/identity/identity.module';
 
     // Infrastructure
     DatabaseModule,
+    KyselyModule, // 복잡 조회(집계/대시보드)용 읽기 전용 Kysely 경로. 참조: docs/convention/10-query-strategy.md
     RedisModule,
     MailModule,
     StorageModule,

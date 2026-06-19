@@ -11,6 +11,7 @@ import { Role } from './entity/role.entity';
 import { Team } from './entity/team.entity';
 import { User } from './entity/user.entity';
 import { UserCreatedHandler } from './handler/user-created.handler';
+import { TeamRosterReadModel } from './read-model/team-roster.read-model';
 import { RoleRepository } from './repository/role.repository';
 import { TeamRepository } from './repository/team.repository';
 import { UserRepository } from './repository/user.repository';
@@ -39,7 +40,8 @@ import { UserCredentialAdapter } from './service/user-credential.adapter';
     TeamService,
     UserResourcePolicy,
     UserCredentialAdapter,
-    // 비동기 후속처리(이벤트 핸들러) 레퍼런스.
+    // 복잡 조회(Kysely ReadModel) + 비동기 후속처리(이벤트 핸들러) 레퍼런스.
+    TeamRosterReadModel,
     UserCreatedHandler,
     { provide: USER_CREDENTIAL_PORT, useExisting: UserCredentialAdapter },
   ],
