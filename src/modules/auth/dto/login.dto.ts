@@ -1,5 +1,7 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
+import { AuthIdentity } from '../user-credential.port';
+
 export class LoginRequest {
   /** 로그인 이메일 @example "user@example.com" */
   @IsEmail()
@@ -31,4 +33,13 @@ export class LoginResponse {
   id!: number;
   role!: LoginRoleData;
   team!: LoginTeamData;
+
+  /** AuthIdentity → 응답 매핑(컨트롤러가 도메인 구조를 직접 재조립하지 않도록 DTO가 책임진다). */
+  static from(identity: AuthIdentity): LoginResponse {
+    return {
+      id: identity.id,
+      role: { id: identity.role.id, name: identity.role.name },
+      team: { id: identity.team.id, position: identity.team.position },
+    };
+  }
 }

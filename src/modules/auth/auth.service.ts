@@ -47,7 +47,11 @@ export class AuthService {
   }
 
   /** refresh: RT 검증 + rotation(재사용 탐지) → 새 AT + RT 발급. */
-  async refresh(refreshToken: string): Promise<IssuedTokens> {
+  async refresh(refreshToken?: string): Promise<IssuedTokens> {
+    // 쿠키 부재(undefined) 등 신뢰경계 입력을 명시 가드 — verify에 undefined를 넘기지 않는다.
+    if (!refreshToken) {
+      throw AUTH_EXCEPTIONS.INVALID_REFRESH_TOKEN();
+    }
     let payload: RefreshTokenPayload;
     try {
       payload = await this.token.verifyRefreshToken(refreshToken);

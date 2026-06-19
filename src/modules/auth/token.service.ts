@@ -49,9 +49,12 @@ export class TokenService {
     return { token, jti };
   }
 
-  /** Access Token 검증 (logout 시 jti 추출용). 만료/위조면 throw. */
+  /** Access Token 검증 (logout 시 jti 추출용). 만료/위조면 throw. alg 명시 고정(alg 치환 방어, RT와 대칭). */
   verifyAccessToken(token: string): Promise<AccessTokenPayload> {
-    return this.jwtService.verifyAsync<AccessTokenPayload>(token);
+    const algorithm = this.configService.getOrThrow<string>('auth.jwtAlgorithm') as JwtSignOptions['algorithm'];
+    return this.jwtService.verifyAsync<AccessTokenPayload>(token, {
+      algorithms: [algorithm].filter((a): a is NonNullable<typeof a> => a != null),
+    });
   }
 
   /** Refresh Token 발급. */

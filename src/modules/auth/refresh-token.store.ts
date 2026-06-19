@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 
 import { parseDurationToSeconds } from '@/common/utils/time.util';
+import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { RedisClient } from '@/lib/redis/redis.client';
 
 import { REFRESH_STORE_PREFIX } from './auth.constants';
@@ -16,6 +17,8 @@ import { AUTH_EXCEPTIONS } from './exception/auth.exception';
  */
 @Injectable()
 export class RefreshTokenStore {
+  private readonly logger = new FrameworkLogger(RefreshTokenStore.name);
+
   constructor(
     private readonly redis: RedisClient,
     private readonly configService: ConfigService,
@@ -46,8 +49,9 @@ export class RefreshTokenStore {
       throw AUTH_EXCEPTIONS.INVALID_REFRESH_TOKEN();
     }
     if (stored !== presentedJti) {
-      // 이미 회전된(옛) RT가 다시 들어옴 = 탈취 의심 → family 폐기.
+      // 이미 회전된(옛) RT가 다시 들어옴 = 탈취 의심 → family 폐기. 보안 이벤트로 경고 로깅(탐지/알림 가치 최상).
       await this.redis.del(key);
+      this.logger.warn(`refresh token reuse detected (token theft 의심) userId=${userId} family=${family}`);
       throw AUTH_EXCEPTIONS.REFRESH_TOKEN_REUSED();
     }
 

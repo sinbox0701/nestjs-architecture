@@ -5,7 +5,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule, JwtModuleOptions, JwtSignOptions } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { getEnvFilePath } from '@/common/config/runtime-env';
 
@@ -53,7 +53,8 @@ import { IdentityModule } from './modules/identity/identity.module';
         };
       },
     }),
-    ThrottlerModule.forRoot(),
+    // 전역 기본 레이트리밋(60초/100req). 인증 라우트는 컨트롤러에서 @Throttle로 더 조인다.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     CacheModule.register({ isGlobal: true, ttl: 600 }),
@@ -73,6 +74,7 @@ import { IdentityModule } from './modules/identity/identity.module';
     // 접근제어 Tier1 매트릭스: identity 도메인이 역할(Role; Red/Blue) 이름 기반 capability 매트릭스를
     // 바인딩한다(스타터 기본 DenyAll 교체). 합성 루트가 도메인 정책을 주입하는 지점.
     identityAccessPolicyProvider,
+    { provide: APP_GUARD, useClass: ThrottlerGuard }, // 레이트리밋(인증 전에 동작)
     { provide: APP_GUARD, useClass: AuthGuard }, // Tier0 인증
     { provide: APP_GUARD, useClass: PolicyGuard }, // Tier1 인가 (RBAC)
     { provide: APP_INTERCEPTOR, useClass: FrameworkGlobalInterceptor },

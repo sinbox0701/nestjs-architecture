@@ -1,11 +1,14 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
 import { EntityManager } from '@mikro-orm/postgresql';
 
 import { Public } from './common/decorators/auth-public.decorator';
 import { FrameworkLogger } from './core/logger/framework-logger';
 import { RedisClient } from './lib/redis/redis.client';
 
+// 헬스 엔드포인트는 레이트리밋에서 제외 — k8s liveness/readiness probe가 429로 재시작되는 것을 방지.
+@SkipThrottle()
 @Controller('/')
 export class HealthController {
   private readonly logger = new FrameworkLogger(HealthController.name);

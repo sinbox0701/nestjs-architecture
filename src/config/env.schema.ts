@@ -123,11 +123,20 @@ function isWeakSecret(secret: string): boolean {
 }
 
 export const envSchema = baseEnvSchema.superRefine((env, ctx) => {
+  // 환경 무관: SameSite=None 쿠키는 브라우저가 Secure 없이는 거부한다.
+  if (env.COOKIE_SAME_SITE === 'none' && !env.COOKIE_SECURE) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['COOKIE_SECURE'],
+      message: 'COOKIE_SAME_SITE=none이면 COOKIE_SECURE=true여야 합니다(브라우저가 Secure 없는 None 쿠키를 거부).',
+    });
+  }
+
   const hardened = env.APP_ENV === 'prod' || env.APP_ENV === 'stage';
   if (!hardened) return;
 
-  // 1. 시크릿: 기본값 금지 + 최소 길이.
-  for (const key of ['JWT_SECRET', 'SESSION_SECRET'] as const) {
+  // 1. 시크릿: 기본값 금지 + 최소 길이. 세 HS256 시크릿(AT/RT/세션) 전부 검사.
+  for (const key of ['JWT_SECRET', 'REFRESH_TOKEN_SECRET', 'SESSION_SECRET'] as const) {
     if (isWeakSecret(env[key])) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -135,6 +144,24 @@ export const envSchema = baseEnvSchema.superRefine((env, ctx) => {
         message: `${env.APP_ENV} 환경에서는 기본/약한 시크릿을 쓸 수 없습니다 (기본값 금지, 최소 ${MIN_SECRET_LENGTH}자). \`openssl rand -hex 32\`로 생성하세요.`,
       });
     }
+  }
+
+  // 1-1. AT/RT 시크릿 분리 강제: 같으면 시크릿 분리(rotation/blocklist 격리)가 무력화된다.
+  if (env.JWT_SECRET === env.REFRESH_TOKEN_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['REFRESH_TOKEN_SECRET'],
+      message: 'REFRESH_TOKEN_SECRET은 JWT_SECRET과 달라야 합니다(AT/RT 시크릿 분리).',
+    });
+  }
+
+  // 1-2. 디버그 응답(stack/요청 body/내부 메시지 노출)은 prod/stage에서 금지.
+  if (env.RESPONSE_DEBUG_DETAIL) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['RESPONSE_DEBUG_DETAIL'],
+      message: `${env.APP_ENV} 환경에서는 RESPONSE_DEBUG_DETAIL=false여야 합니다(stack/요청 본문 노출 방지).`,
+    });
   }
 
   // 2. 쿠키: prod/stage는 Secure 필수(HTTPS 전송).

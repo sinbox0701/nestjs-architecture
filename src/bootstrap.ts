@@ -30,9 +30,10 @@ export async function bootstrap(): Promise<INestApplication> {
   app.enableCors({
     origin: corsUrls,
     credentials: true,
-    exposedHeaders: ['authorization', 'x-server-token', 'x-trace-id'],
+    // 토큰은 httpOnly 쿠키로 전달되므로 응답에서 인증 헤더를 노출할 필요가 없다. trace-id만 노출.
+    exposedHeaders: ['x-trace-id'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // Authorization: Bearer 입력 경로 지원(AuthGuard)
     maxAge: 3600,
   });
 
@@ -110,9 +111,9 @@ export async function bootstrap(): Promise<INestApplication> {
   // Cookie Parser
   app.use(cookieParser());
 
-  // Body Parsers
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  // Body Parsers. 기본 1mb로 제한(메모리 DoS 완화). 업로드가 필요한 라우트는 별도로 상향한다.
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   // ============================================================
   // Validation Pipe
