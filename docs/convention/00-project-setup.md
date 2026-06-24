@@ -175,14 +175,17 @@ node scripts/check-entity-migration.mjs --warn  # 엔티티↔마이그레이션
 ```
 1. Checkout
 2. 마이그레이션 드리프트 체크 (엔티티 변경에 마이그레이션 누락 시 차단)
-3. pnpm 설정 + Node.js 24 + install
-4. lint:check
-5. typecheck
-6. dep:check (모듈 경계 — dependency-cruiser)
-7. build
-8. test (단위)
-9. test:integration (실제 DB)
-10. test:e2e
+3. 컨벤션 문서 참조 정합성 체크 (doc:check — stale `NN-*.md` 참조 차단)
+4. 하네스 config 정합성 체크 (config:check — `.claude/config.json` 파싱/키)
+5. pnpm 설정 + Node.js 24 + install
+6. lint:check
+7. format:check
+8. typecheck
+9. dep:check (모듈 경계 — dependency-cruiser)
+10. build
+11. test (단위)
+12. test:integration (실제 DB)
+13. test:e2e
 ```
 
 - **드리프트 체크가 가장 앞**이다 (base 대비 `*.entity.ts` 변경에 마이그레이션 누락이면 차단). 로컬 husky는 경고(비차단)지만 CI는 차단.

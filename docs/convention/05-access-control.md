@@ -116,6 +116,8 @@ export const IDENTITY_ROLE_MATRIX: RoleActionMatrix = {
 
 > 매트릭스 키는 **대문자 정규화**된다(resolver가 `role.name.toUpperCase()`). casing 불일치로 인한 조용한 default-deny를 막는다. 런타임 편집(관리자가 역할 정의)이 필요하면 `AccessPolicyProvider`를 DB 구현으로 교체한다(코드 기본 + DB 오버레이).
 
+> **team/role은 SUPER 전용 구조 리소스다(의도적 Tier2 부재).** 매트릭스가 `team`/`role`에 어떤 역할 capability도 안 주므로 Tier1에서 SUPER만 통과하고, SUPER는 Tier2를 bypass한다 → 그래서 `team.service`/`role.service`엔 Tier2(소유권 검증)가 없고 actor도 받지 않는다. 아래 "`:id` 라우트는 Tier2 필수" 규칙은 **역할에 부여된 팀-스코프 리소스(user 등)**에 적용된다. ⚠️ 일반 역할에 `team`/`role` capability를 부여하려면 Tier2 백스톱이 없어 cross-team 노출이 생기므로 **반드시 `ResourcePolicy`를 함께 추가**하라.
+
 ## Tier 2 — ABAC (`ResourcePolicy<TEntity>`, 소속팀 소유권)
 
 Tier1은 "역할 등급이 이 리소스 타입을 다룰 수 있나"만 본다. "이 **특정 인스턴스**가 actor의 소속팀(Team) 소유인가, actor가 팀장인가, 본인인가"는 엔티티를 로드해야 알 수 있으므로 **service에서** 판정한다.
@@ -163,14 +165,17 @@ export class UserResourcePolicy extends ResourcePolicy<User> {
 ```
 
 ```ts
-// user.service.ts — 로드+인가를 loadAndAuthorize로 묶는다. cross-team이면 authorize가 403을 던진다.
+// user.service.ts — 로드+인가를 loadAndAuthorize로 묶는다. user는 ID가 순차 정수라 cross-team을 404로
+// 마스킹한다(미존재와 동일 응답 → enumeration 차단). 마스킹이 불필요한 리소스는 옵션을 생략하면 403.
 async getUser(actor: AuthSubject, id: number): Promise<UserData> {
-  const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
+  const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id, {
+    maskNotFound: () => USER_EXCEPTIONS.NOT_FOUND(),
+  });
   return this.toData(user);
 }
 ```
 
-> **403 vs 404**: 기본은 403(REST 관례, "권한 없음"을 명확히 전달)이다. 단 **리소스 존재 자체가 민감하고 ID가 추측 가능**(순차 정수 등)하면 403↔404 차이가 열거(enumeration) 오라클이 된다 — 이 경우에 한해 read 인가 실패를 `NOT_FOUND`로 마스킹(GitHub의 private repo 방식)하는 것을 검토한다. 마스킹은 "권한없음 vs 없음"을 못 가려 DX 비용이 있으니 기본값으로 깔지 않는다.
+> **403 vs 404**: `loadAndAuthorize`의 기본은 403(REST 관례, "권한 없음"을 명확히 전달)이다. 단 **리소스 존재 자체가 민감하고 ID가 추측 가능**(순차 정수 등)하면 403↔404 차이가 열거(enumeration) 오라클이 된다 — 이 경우 `{ maskNotFound: () => XXX_EXCEPTIONS.NOT_FOUND() }`로 read 인가 실패를 `NOT_FOUND`로 마스킹(GitHub의 private repo 방식)한다. **loader의 미존재 예외와 같은 팩토리**를 넘겨야 403/404가 구분 불가능해진다. identity `getUser`는 ID가 순차 정수라 이 마스킹을 적용한 레퍼런스다. 마스킹은 "권한없음 vs 없음"을 못 가려 DX 비용이 있으니 리소스별로 선택한다(엔진 기본은 비마스킹).
 
 목록은 service에서 actor의 소속팀(들)으로 스코프한다(SUPER는 전체) — cross-team 정보 노출 방지.
 
@@ -208,12 +213,13 @@ async getUser(actor: AuthSubject, id: number): Promise<UserData> {
 엔진의 default-deny 코어는 견고하지만, **신뢰 경계와 Tier2 적용은 도메인 구현자가 지켜야** 안전하다.
 
 1. **발급자 계약 (가장 중요)** — `teams`/`globalRoles`/`role`은 JWT claim이고 엔진은 무조건 신뢰한다. 토큰 발급자(로그인)는 이 값을 **반드시 서버 측 DB 상태에서만** 채운다. 클라이언트 입력(가입 body의 role 등)을 토큰/엔티티에 복사하면 즉시 권한 상승이다. identity는 `CreateUserRequest`에 `globalRoles`/`role` 필드를 두지 않고 `User.create`가 `globalRoles`를 항상 `[]`로 만들어 이를 차단한다. `SUPER`는 전체 bypass이므로 **보호된 관리자 출처에서만** 부여한다.
-2. **인스턴스 라우트(`:id`)는 Tier2 필수** — Tier1은 capability 등급만 본다. 대상 리소스가 actor 소유인지는 보지 않으므로, `:id` 라우트는 **반드시** service에서 `loadAndAuthorize(...)`를 호출한다. 빠뜨리면 cross-team IDOR가 가능하다. (인가 실패는 기본 403. 존재가 민감하고 ID가 추측 가능하면 read를 404로 마스킹하는 옵션을 검토.)
+2. **인스턴스 라우트(`:id`)는 Tier2 필수** — Tier1은 capability 등급만 본다. 대상 리소스가 actor 소유인지는 보지 않으므로, `:id` 라우트는 **반드시** service에서 `loadAndAuthorize(...)`를 호출한다. 빠뜨리면 cross-team IDOR가 가능하다. 컨트롤러→service 호출은 정적으로 강제할 수 없어(가드/dep:check 불가) **안전망은 두 가지**다: ① `/scaffold`가 `:id` 라우트에 `loadAndAuthorize` 스텁을 생성, ② `convention-reviewer`가 누락을 리뷰에서 잡는다. (인가 실패는 기본 403. 존재가 민감하고 ID가 추측 가능하면 `loadAndAuthorize(loader, policy, actor, action, id, { maskNotFound: () => XXX_EXCEPTIONS.NOT_FOUND() })`로 read를 404 마스킹 — loader의 미존재 예외와 같은 팩토리를 넘겨야 403/404가 구분 불가능해진다. identity `getUser`가 레퍼런스.)
 3. **시크릿 하드닝** — `JWT_SECRET`·`REFRESH_TOKEN_SECRET`·`SESSION_SECRET`은 prod/stage에서 약한값/기본값/AT=RT 동일이 부팅 거부된다(`env.schema.ts`). HS256 대칭키라 인가 모델 전체가 시크릿 무결성에 달려 있다 — crown jewel로 관리.
-4. **blocklist는 fail-open** — Redis 장애 시 강제 로그아웃이 무력화된다. access token TTL을 짧게(15분) 유지한다. 즉시 무효화가 critical하면 `REDIS_REQUIRED=true` + fail-closed 검토.
-5. **`jti` 필수** — `jti` 없는 토큰은 무효화 불가 → `AuthGuard`가 **거부**한다. 발급자는 모든 토큰에 `jti`를 넣는다.
-6. **가드는 HTTP 전용** — `AuthGuard`/`PolicyGuard`는 non-http에서 통과한다. WebSocket/microservice 도입 시 전용 가드를 붙인다.
-7. **레이트리밋** — `ThrottlerGuard`가 전역(60s/100req), 인증 라우트는 `@Throttle`로 더 조인다(login 5/분). brute-force/credential-stuffing 방어.
+4. **blocklist는 기본 fail-open** — Redis 장애 시 강제 로그아웃이 무력화된다. access token TTL을 짧게(15분) 유지한다. 즉시 무효화가 critical하면 `REDIS_REQUIRED=true` + **`AUTH_BLOCKLIST_FAIL_CLOSED=true`**로 전환한다(Redis 불가 시 401 — 가용성↓ 대신 무효화 보장).
+5. **권한 강등/추방 즉시 반영 (세션 epoch)** — AT에 `epoch` 클레임이 실리고 `AuthGuard`가 `session:epoch:{userId}`(Redis)와 대조한다. 권한 회수·추방 시 `AuthService.revokeAllSessions(userId)`(epoch +1)를 호출하면 해당 사용자의 기존 AT가 다음 요청부터 전부 무효화된다(blocklist의 jti 단위 무효화와 달리 **사용자 단위**). 미호출 시 기존 동작과 동일(권한 변경이 최대 AT TTL만큼 지연). epoch 조회도 fail-open.
+6. **`jti` 필수** — `jti` 없는 토큰은 무효화 불가 → `AuthGuard`가 **거부**한다. 발급자는 모든 토큰에 `jti`를 넣는다.
+7. **가드는 HTTP 전용** — `AuthGuard`/`PolicyGuard`는 non-http에서 통과한다. WebSocket/microservice 도입 시 전용 가드를 붙인다.
+8. **레이트리밋** — `ThrottlerGuard`가 전역(60s/100req), 인증 라우트는 `@Throttle`로 더 조인다(login 5/분). brute-force/credential-stuffing 방어.
 
 ## 향후 확장
 

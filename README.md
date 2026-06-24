@@ -16,11 +16,12 @@
 5. [모듈 내부 구조](#모듈-내부-구조)
 6. [아키텍처 핵심](#아키텍처-핵심)
 7. [레퍼런스 모듈: auth + identity](#레퍼런스-모듈-auth--identity)
-8. [개발 워크플로 (SDD)](#개발-워크플로-sdd)
-9. [하네스 엔지니어링 (.claude/)](#하네스-엔지니어링-claude)
-10. [운영 (CI/CD)](#운영-cicd)
-11. [개발 스크립트](#개발-스크립트)
-12. [문서](#문서)
+8. [새 도메인 추가하기](#새-도메인-추가하기)
+9. [개발 워크플로 (SDD)](#개발-워크플로-sdd)
+10. [하네스 엔지니어링 (.claude/)](#하네스-엔지니어링-claude)
+11. [운영 (CI/CD)](#운영-cicd)
+12. [개발 스크립트](#개발-스크립트)
+13. [문서](#문서)
 
 ---
 
@@ -235,6 +236,27 @@ sequenceDiagram
 
 상세: [04-layer-responsibility](docs/convention/04-layer-responsibility.md), [06-naming-and-style](docs/convention/06-naming-and-style.md).
 
+### 응답 & 에러 포맷 (통일 envelope)
+
+모든 응답은 `success` 플래그가 박힌 envelope로 감싼다. 성공은 `R.`\*(`src/common/base/response`), 에러는 전역 필터가 만든다 → FE는 항상 같은 모양을 받는다(orval 타입도 이 모양으로 생성).
+
+```jsonc
+// 성공 — R.data(dto)
+{ "success": true, "data": { "id": 1, "name": "..." } }
+// 목록 — R.list / R.page (offset)
+{ "success": true, "data": { "list": [/* ... */], "count": 42 } }
+// 커서 페이지 — R.cursorPage (다음 없으면 nextPageCursor 키 자체를 생략)
+{ "success": true, "data": { "list": [/* ... */], "nextPageCursor": "eyJ..." } }
+// 본문 없음 — R.empty()
+{ "success": true }
+// 에러 — 전역 필터(http-exception.filter.ts) + exception/ 팩토리 상수
+{ "success": false, "error": { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." } }
+```
+
+- 에러 `code`는 예외 팩토리(`exception/`)가 정하는 **안정적 문자열**이다 — FE는 `message`(가변)가 아니라 `code`로 분기한다. `code` 변경은 Breaking(→ `/fe-changes`).
+- `RESPONSE_DEBUG_DETAIL=true`(dev 전용)면 에러에 `debugDetail`(stack·path·body)이 붙는다. prod/stage는 시크릿 하드닝 게이트가 이 옵션을 부팅 거부한다.
+- 응답 envelope는 인터셉터/필터가 자동 처리하므로 컨트롤러는 `R.*`만 반환하면 된다. 상세: [12-observability](docs/convention/12-observability.md).
+
 ### 접근제어 — RBAC + ABAC (default-deny, 3-tier)
 
 | Tier       | 위치                                              | 질문                                                   | 실패 |
@@ -268,8 +290,16 @@ sequenceDiagram
 
 ### `modules/auth/` — 인증(토큰/세션)
 
-- 로그인/refresh(rotation)/로그아웃. AT 15m HS256 + RT 7d(분리 시크릿, Redis family rotation + **재사용 탐지 → family 폐기**).
-- httpOnly 쿠키 전달, 강제 로그아웃 blocklist(`blocked:{jti}`), 레이트리밋(login 5/분).
+| 엔드포인트           | 접근      | 동작                                                                       |
+| -------------------- | --------- | -------------------------------------------------------------------------- |
+| `POST /auth/login`   | `@Public` | 자격증명 검증(argon2id) → AT/RT 발급, httpOnly 쿠키 set. 레이트리밋 5/분   |
+| `POST /auth/refresh` | `@Public` | RT 쿠키 검증 → rotation(새 AT/RT). **재사용 탐지 시 family 전체 폐기**     |
+| `POST /auth/logout`  | `@Public` | AT의 `jti`를 blocklist 등록(`blocked:{jti}`) + RT family 폐기 + 쿠키 clear |
+
+- 토큰: AT(`typ:'access'`) 15m HS256 + RT(`typ:'refresh'`) 7d. **분리 시크릿** + AuthGuard가 `typ`을 검증해 RT를 access로 오용 불가. Redis family rotation.
+- 강제 로그아웃 blocklist(`blocked:{jti}`) — AuthGuard가 매 요청 확인(Tier0). Redis 장애 시 fail-open(AT 단기 가정).
+- **brute-force 방어**: IP 레이트리밋(login 5/분) + 계정 단위 lockout(`AUTH_MAX_LOGIN_ATTEMPTS`, Redis) + 로그인 타이밍 평탄화(미존재 이메일도 더미 argon2 검증).
+- **CSRF**: 상태변경 요청(POST/PUT/PATCH/DELETE)의 `Origin`을 CORS allowlist와 대조(`bootstrap.ts`). 토큰은 httpOnly 쿠키로만 전달.
 - **DIP**: `UserCredentialPort`를 정의하고 User 엔티티는 모른다 → identity가 어댑터로 구현(모듈 결합 회피).
 
 ### `modules/identity/` — User / Team / Role (한 bounded context)
@@ -284,6 +314,26 @@ sequenceDiagram
 - **Tier2 정책**(`access/user.resource-policy.ts`): READ=같은 팀 / CREATE=대상 팀 팀장 / UPDATE=팀장 또는 본인 / DELETE=팀장(본인 제외) / 직위 변경=팀장(본인 제외, self-escalation 차단).
 - 목록은 소속팀으로 스코프, cross-team 단건 조회는 403(기본; 존재 민감 리소스는 404 마스킹 옵션).
 - 테이블: `users`/`teams`/`roles` (예약어 회피 복수형), `email`/`name` **partial unique**(soft-delete 후 재사용 허용).
+
+---
+
+## 새 도메인 추가하기
+
+`modules/identity/`를 본보기로 삼는다. `/scaffold`(SDD 스킬)로 뼈대를 자동 생성할 수 있고, 수동이면 아래 순서를 따른다.
+
+1. **패턴 선택** — 규모 순 승격: **Compact Feature**(평면, 파일 1~2개) → **Role-Folder**(같은 역할 파일 2개+) → **Domain-Driven**(독립 bounded context 2개+). 기준: [03-module-patterns](docs/convention/03-module-patterns.md). _(Read/Write 분리 `*ReadService`/`*WriteService`는 모듈 구조가 아니라 **서비스 분리** 축 — 조회 로직이 복잡해질 때, [04-layer-responsibility](docs/convention/04-layer-responsibility.md).)_
+2. **Entity** (`entity/`) — `BaseEntity` 상속, `create()` 정적 팩토리 + 캡슐화된 상태변경 메서드. 데코레이터는 `@mikro-orm/decorators/legacy`. FK 컬럼엔 `index: true`.
+3. **Repository** (`repository/`) — `BaseRepository` 상속. 다른 도메인 repo 직접 주입 금지(dep:check 차단).
+4. **DTO** (`dto/`) — 행위별 bundled `*.dto.ts`(Request+Response 한 파일). 클래스명 `행위+대상+Request/Response`, 필드는 JSDoc `@example` + class-validator. union 대신 enum, nullable은 `?:`.
+5. **Exception** (`exception/`) — 인라인 `throw` 금지. `src/common/exceptions/http.exception.ts` 기반 팩토리 상수(`XXX_EXCEPTIONS.NOT_FOUND()`). 안정적 `code` 문자열을 정한다.
+6. **Service** (`service/`) — 유스케이스 진입점·트랜잭션 경계. **Tier2 접근제어**(`loadAndAuthorize`/`authorize`) 호출. 쓰기 후 필요한 비동기 연계는 이벤트로 emit. 추적 식별자 포함 `FrameworkLogger`.
+7. **접근제어** (`access/`) — Tier1 역할×액션 **매트릭스**(`*.matrix.ts`) + Tier2 `**ResourcePolicy`\*_(`_.resource-policy.ts`, 소속팀 소유권). 둘을 `ACCESS_POLICY_PROVIDER` 토큰에 바인딩. enum 이름은 전역 유일.
+8. **Controller** (`controller/`) — 라우팅 + DTO 바인딩만. 보호 라우트마다 `@Requires(Action.X, '<resourceType>')` **또는** `@Public()`(없으면 default-deny 403). 응답은 `R.`\* envelope. 메서드 JSDoc 첫 줄 = orval 함수 설명.
+9. **모듈 등록** — `<domain>.module.ts` 작성 후 `src/app.module.ts`에 등록. 동기 의존은 imports/exports, 비동기는 이벤트([02-module-rules](docs/convention/02-module-rules.md)).
+10. **마이그레이션** — 로컬은 엔티티 수정 → auto-sync. PR 전 `pnpm migration:create` → SQL 검수 → `pnpm migration:verify`. (엔티티만 바꾸고 마이그레이션 누락 시 CI 차단)
+11. **검증** — `pnpm typecheck && pnpm lint:check && pnpm dep:check && pnpm test`. 테스트는 [08-testing](docs/convention/08-testing.md)(unit/integration/e2e).
+
+> 끊김 없는 흐름이 필요하면 PRD부터 `/spec → /issues → /scaffold → 코딩 → /review → /test → /migration → /fe-changes → /commit`(아래 SDD).
 
 ---
 
@@ -341,7 +391,7 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 | 로컬              | `dev`          | 엔티티 auto-sync                       |
 | 스테이징/프로덕션 | `stage`/`prod` | migration guard + 시크릿 하드닝 게이트 |
 
-> `**APP_ENV`를 모든 배포에 명시\*\*한다. 시크릿 하드닝(약한 `JWT_SECRET`/`REFRESH_TOKEN_SECRET`·`COOKIE_SECURE`·`RESPONSE_DEBUG_DETAIL`·`TRUST_PROXY`)은 prod/stage에서만 작동한다.
+> `**APP_ENV`를 모든 배포에 명시한다. 시크릿 하드닝(약한 `JWT_SECRET`/`REFRESH_TOKEN_SECRET`·`COOKIE_SECURE`·`RESPONSE_DEBUG_DETAIL`·`TRUST_PROXY`)은 prod/stage에서만 작동한다.
 
 ---
 

@@ -16,7 +16,7 @@
 `src/core/logger/framework-logger.ts`. NestJS `ConsoleLogger`를 확장한다.
 
 - **레벨**: `LOG_LEVEL` env(`debug|info|warn|error`)를 NestJS 레벨로 매핑(`info`→`log`). 해당 레벨 이상만 출력.
-- **포맷**: 모든 출력에 `[functionName:lineNumber][traceSign] message`를 prepend한다. caller는 스택 트레이스에서, `traceSign`은 `ContextStorage.getCurrnetContextSign()`(OTel traceId 우선)에서 가져온다.
+- **포맷**: 모든 출력에 `[functionName:lineNumber][traceSign] message`를 prepend한다. caller는 스택 트레이스에서, `traceSign`은 `ContextStorage.getCurrentContextSign()`(OTel traceId 우선)에서 가져온다.
 - **사용**: 쓰기/orchestration 서비스·핸들러에 인스턴스를 둔다. 추적 식별자(`orderId`, `userId` 등)를 메시지에 포함한다(`06-naming-and-style.md`). 민감값은 `LogSanitizer`(`src/common/utils/log-sanitizer.ts`) 기준을 따른다.
 - **ORM 로그**: `OrmLogger`(`src/core/logger/orm-logger.ts`)가 MikroORM 쿼리 로그를 레벨별로 Nest Logger에 위임한다.
 
@@ -25,7 +25,7 @@
 `src/core/logger/context-storage.ts`. `AsyncLocalStorage` 기반 요청 스코프 저장소.
 
 - 키: `x-trace-id`(서명), `x-framework-name`(호출 출처).
-- `getCurrnetContextSign()`: **활성 OTel traceId를 우선** 반환, 없으면 ALS에 저장된 `x-trace-id`, 그것도 없으면 `'NONE'`. → 로그와 응답 헤더가 트레이스와 같은 id로 정렬된다.
+- `getCurrentContextSign()`: **활성 OTel traceId를 우선** 반환, 없으면 ALS에 저장된 `x-trace-id`, 그것도 없으면 `'NONE'`. → 로그와 응답 헤더가 트레이스와 같은 id로 정렬된다.
 - 컨텍스트 생성/전파는 전역 인터셉터가 요청 시작 시 수행한다.
 
 ## 트레이싱 — OpenTelemetry (`src/tracing.ts`)
