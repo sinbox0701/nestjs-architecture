@@ -55,11 +55,14 @@ export class UserService {
   }
 
   /**
-   * 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능. cross-team 접근은 403(Forbidden).
-   * 참고: 리소스 존재 자체가 민감하고 ID가 추측 가능하면(열거 오라클 우려) 403→404 마스킹을 검토한다.
+   * 없으면 예외(getBy 시맨틱). 같은 소속팀 구성원만 조회 가능.
+   * cross-team 접근은 404로 마스킹한다 — 미존재(getUserOrThrow의 NOT_FOUND)와 동일 응답이라
+   * "존재하지만 권한 없음"이 새지 않는다(ID가 auto-increment라 enumeration 오라클 차단).
    */
   async getUser(actor: AuthSubject, id: number): Promise<UserData> {
-    const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id);
+    const user = await loadAndAuthorize((uid) => this.getUserOrThrow(uid), this.policy, actor, Action.READ, id, {
+      maskNotFound: () => USER_EXCEPTIONS.NOT_FOUND(),
+    });
     return this.toData(user);
   }
 

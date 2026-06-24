@@ -3,7 +3,7 @@
 # 로컬 마이그레이션 dry-run 검증.
 # 임시 PostgreSQL 컨테이너를 띄워 pending 마이그레이션을 적용해 보고 정리한다.
 # `_fix_`/`_repair_` 수정 마이그레이션이 양산되는 것을 방지한다.
-# 참조: docs/convention/10-deployment.md, camp-backend docs/tech-debt/migration-management.md
+# 참조: docs/convention/09-deployment.md, camp-backend docs/tech-debt/migration-management.md
 #
 # 사용: pnpm migration:verify
 set -euo pipefail

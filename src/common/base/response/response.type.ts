@@ -5,7 +5,7 @@ export interface PageInput<T> {
 
 export interface CursorPageInput<T> {
   list: T[];
-  /** 다음 페이지가 없으면 생략한다(`| null` 대신 키 미노출 — 07-naming-and-style.md). */
+  /** 다음 페이지가 없으면 생략한다(`| null` 대신 키 미노출 — 06-naming-and-style.md). */
   nextPageCursor?: string;
 }
 

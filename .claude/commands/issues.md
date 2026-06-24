@@ -20,7 +20,8 @@ $ARGUMENTS의 첫 번째 토큰을 스펙 파일 경로로 사용한다.
 3. Linear MCP 사용 가능 여부 확인 (list_teams 호출).
 4. team이 여러 개면 사용자에게 선택받는다.
 
-**Linear 설정**: .claude/config.json (키: linear.teamId, linear.workspace). 없으면 사용자에게 확인.
+**Linear 설정**: .claude/config.json (키: linear.teamId, linear.workspace, linear.issuePrefix). 없으면 사용자에게 확인.
+이슈 제목 prefix는 `linear.issuePrefix`를 쓴다(아래 표의 `[BE]`는 예시 — 실제 값은 config에서 읽는다).
 프로젝트별 설정: .claude/config.json (없으면 사용자에게 확인). 실제 ID를 코드에 하드코딩하지 않는다.
 
 ## 1. 스펙 파싱
@@ -59,9 +60,19 @@ Enabler: 컴포넌트 섹션에서 실제 기술된 컴포넌트만 sub 생성
 
 ## 3. 이슈 본문 구성
 
+이슈 타입별 본문 골격은 `.claude/templates/linear/` 템플릿을 읽어 스펙 내용으로 채운다(매핑 아래). 템플릿이 빠진 항목만 아래 요약 규칙으로 보완한다.
+
+| 이슈 타입      | 템플릿 파일                             |
+| -------------- | --------------------------------------- |
+| Parent Feature | `be-feature.md`                         |
+| Sub Data       | `be-feature-sub-data.md`                |
+| Sub Service    | `be-feature-sub-service.md`             |
+| Sub API        | `be-feature-sub-api.md` (e2e 섹션 포함) |
+| Parent Enabler | `be-enabler.md`                         |
+| Sub Enabler    | `be-enabler-sub.md`                     |
+
 Parent: 요약, 결정 사항, 검증 조건(통과/엣지), 열린 질문, 구현 순서
 Sub (Feature): 작업 범위, 완료 조건(단위/통합), 구현 순서
-API Layer sub에만: e2e 테스트 섹션 추가
 Sub (Enabler): 작업 범위, 완료 조건, 구현 순서
 
 ## 4. 프리뷰 + 확인
@@ -70,13 +81,13 @@ push 전에 전체 구조 보여준다. ㅇㅇ/ㄱㄱ → push, edit → 수정 
 
 ## 5. Linear Push
 
-제목 포맷:
-| Parent Feature | [BE] {title} |
-| Sub Data | [BE] {title} — Data Layer |
-| Sub Service | [BE] {title} — Service Layer |
-| Sub API | [BE] {title} — API Layer |
-| Parent Enabler | [BE] {title} |
-| Sub Enabler | [BE] {title} — {component_name} |
+제목 포맷 (`[BE]` = `linear.issuePrefix` 예시 — 실제 값으로 치환):
+| Parent Feature | [{prefix}] {title} |
+| Sub Data | [{prefix}] {title} — Data Layer |
+| Sub Service | [{prefix}] {title} — Service Layer |
+| Sub API | [{prefix}] {title} — API Layer |
+| Parent Enabler | [{prefix}] {title} |
+| Sub Enabler | [{prefix}] {title} — {component_name} |
 
 순서: Parent → sub들 (parentId 연결) → 구현 순서에 ID 역채움
 

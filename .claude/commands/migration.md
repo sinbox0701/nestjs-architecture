@@ -78,7 +78,6 @@ SQL 규칙: 테이블명/컬럼명 쌍따옴표. up()/down() 항상 쌍.
 
 ## 규칙
 
-- migration 테이블: backend_template_migrations
-- 테스트 DB: backend_template_test
+- migration 테이블·테스트 DB 이름을 하드코딩하지 않는다 — 단일 출처에서 읽는다: 테이블명은 `src/lib/database/mikro-orm.config.ts`의 `migrations.tableName`, 테스트 DB는 `.env.test`의 `POSTGRES_DB`.
 - Idempotent SQL 필수. docs/convention/09-deployment.md 참조.
 - 생성 후 반드시 pnpm migration:verify 로 검증한다.

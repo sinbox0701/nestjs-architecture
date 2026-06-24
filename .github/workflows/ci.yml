@@ -50,6 +50,12 @@ jobs:
       - name: Migration drift check (entity changed without migration)
         run: node scripts/check-entity-migration.mjs --base ${{ github.event.pull_request.base.sha }}
 
+      - name: Convention doc reference check (stale NN-*.md refs)
+        run: node scripts/check-doc-refs.mjs
+
+      - name: Harness config sanity check (.claude/config.json)
+        run: node scripts/check-config.mjs
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 

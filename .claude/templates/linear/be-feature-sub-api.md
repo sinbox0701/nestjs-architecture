@@ -10,7 +10,9 @@
 
 - 인증 필요: Yes / No
 
-- 권한: @Roles(RoleCode.X) 또는 @Public()
+- 권한(Tier1 RBAC): `@Requires(Action.X, '<resource>')` 또는 `@Public()` (default-deny)
+
+- 소유권(Tier2 ABAC): 인스턴스 라우트(`:id`)면 service에서 `loadAndAuthorize(...)` 호출 (cross-team IDOR 방지)
 
 ### Request DTO
 

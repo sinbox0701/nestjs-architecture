@@ -29,7 +29,7 @@ git diff <base-branch>...HEAD --name-only
 | Enum/Type      | _.enum.ts, _.type.ts, \*.constant.ts          |
 | Exception      | _.exception.ts, exception/_.ts                |
 | Event          | _.event.ts, _.handler.ts (SSE/WebSocket 관련) |
-| Access Control | _role_, _guard_                               |
+| Access Control | _.matrix.ts, _.resource-policy.ts, access/\_  |
 
 ## 2. 카테고리별 분석
 
@@ -55,9 +55,10 @@ R.data ↔ R.list ↔ R.page ↔ R.cursorPage 변경, 페이지네이션 구조 
 
 ### 2.6 권한/인가 변경
 
-- @Roles() 데코레이터 추가/변경/삭제
-- @Public() 추가/제거
-- RoleCode(USER/ADMIN/SUPER) 기반 접근 조건 변경
+- `@Requires(Action.X, '<resourceType>')` 데코레이터 추가/변경/삭제 (Tier1 RBAC)
+- `@Public()` 추가/제거 (인증 요구 토글)
+- capability 매트릭스(`access/*.matrix.ts`) 또는 `ResourcePolicy`(`access/*.resource-policy.ts`) 소유권 규칙 변경 (Tier2 ABAC)
+- 참고: 인가 변경은 Orval 타입을 바꾸지 않는다(런타임 403/401) — FE는 호출 가능 여부·에러 핸들링 관점에서 영향받음.
 
 ### 2.7 실시간 이벤트 변경 (해당 시)
 

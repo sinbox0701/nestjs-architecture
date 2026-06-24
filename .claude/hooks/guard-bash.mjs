@@ -23,7 +23,18 @@ process.stdin.on('end', () => {
       msg: 'DROP TABLE/DATABASE/SCHEMA 차단 — 스키마 변경은 마이그레이션으로 처리하세요.',
     },
     { re: /\bgit\s+reset\s+--hard\b/, msg: 'git reset --hard 차단 — 작업 손실 위험. 정말 버릴 거면 직접 실행하세요.' },
-    { re: /\brm\s+-[a-z]*r[a-z]*f?[a-z]*\s+(\/|~|\$HOME)(\s|\/|$)/, msg: 'rm -rf 루트/홈 차단.' },
+    {
+      // 루트 절대경로(`/`, `/etc` …)와 홈/$HOME *자체*만 차단. `~/sub`·`$HOME/sub` 같은 홈 하위 경로는
+      // 정상 작업이라 통과(과거 `~/tmp` 오탐 수정).
+      re: /\brm\s+-[a-z]*r[a-z]*f?[a-z]*\s+(\/|~(\s|$)|\$HOME(\s|$))/,
+      msg: 'rm -rf 루트/홈 차단.',
+    },
+    {
+      // 훅 우회(--no-verify) 커밋 차단. lint/format/드리프트 가드를 건너뛰지 못하게 한다.
+      // (-n 단축형은 커밋 메시지 안의 '-n' 문자열을 오탐하므로 제외 — --no-verify만 매칭.)
+      re: /\bgit\b[^\n]*\bcommit\b[^\n]*--no-verify\b/,
+      msg: '훅 우회(--no-verify) 커밋 차단 — lint/format 가드를 통과시키세요.',
+    },
   ];
 
   for (const d of dangers) {

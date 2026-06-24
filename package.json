@@ -38,6 +38,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "dep:check": "depcruise src --config .dependency-cruiser.cjs",
+    "doc:check": "node scripts/check-doc-refs.mjs",
+    "config:check": "node scripts/check-config.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -137,7 +139,11 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
     ]
   },
   "jest": {

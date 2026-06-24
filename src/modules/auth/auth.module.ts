@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthCookieService } from './auth-cookie.service';
 import { RefreshTokenStore } from './refresh-token.store';
+import { SessionEpochStore } from './session-epoch.store';
 import { TokenService } from './token.service';
 
 /**
@@ -19,7 +20,8 @@ import { TokenService } from './token.service';
 @Module({
   imports: [IdentityModule], // USER_CREDENTIAL_PORT 제공
   controllers: [AuthController],
-  providers: [AuthService, TokenService, RefreshTokenStore, AuthCookieService],
-  exports: [TokenService],
+  providers: [AuthService, TokenService, RefreshTokenStore, SessionEpochStore, AuthCookieService],
+  // SessionEpochStore: 도메인이 권한 회수/추방 시 revokeAll로 사용자 세션을 무효화하는 훅.
+  exports: [TokenService, SessionEpochStore],
 })
 export class AuthModule {}

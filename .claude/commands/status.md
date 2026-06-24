@@ -20,13 +20,13 @@ docs/prd/ 디렉토리를 스캔한다:
 
 Linear MCP가 사용 가능하면:
 
-- [BE] prefix 이슈 중 최근 생성된 것들을 조회
+- `linear.issuePrefix` prefix 이슈 중 최근 생성된 것들을 조회 (예시 `[BE]`)
 - PRD title과 매칭하여 이슈 생성 여부 및 상태 파악
 - 각 이슈의 sub-issue 진행 상태 (Todo / In Progress / Done)
 
 Linear MCP가 없으면 파일시스템 정보만으로 출력한다.
 
-**Linear 설정**: .claude/config.json (키: linear.teamId, linear.workspace). 없으면 사용자에게 확인.
+**Linear 설정**: .claude/config.json (키: linear.teamId, linear.workspace, linear.issuePrefix). 없으면 사용자에게 확인.
 프로젝트별 설정: .claude/config.json (없으면 사용자에게 확인). 실제 ID를 코드에 하드코딩하지 않는다.
 
 ### 3. 최근 작업 이력

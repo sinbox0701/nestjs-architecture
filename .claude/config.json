@@ -2,7 +2,8 @@
   "_comment": "프로젝트별 설정: 실제 값을 여기에 입력. 값을 코드에 하드코딩하지 않는다.",
   "linear": {
     "teamId": "",
-    "workspace": ""
+    "workspace": "",
+    "issuePrefix": ""
   },
   "frontend": {
     "repoPath": "",

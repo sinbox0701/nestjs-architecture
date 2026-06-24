@@ -1,7 +1,7 @@
 /**
  * dependency-cruiser — 모듈 경계 fitness function.
  *
- * docs/convention/01-project-structure.md / 03-module-rules.md / 05-layer-responsibility.md
+ * docs/convention/01-project-structure.md / 02-module-rules.md / 04-layer-responsibility.md
  * 의 경계 규칙을 의존 그래프 수준에서 자동 집행한다. ESLint(문법)가 못 잡는
  * "A 모듈이 B 모듈의 repository를 직접 import" 같은 경계 침식을 CI에서 차단한다.
  *
@@ -45,12 +45,26 @@ module.exports = {
       name: 'no-cross-module-internals',
       comment:
         '다른 도메인의 repository/entity를 직접 import 금지. 도메인 간 읽기는 해당 도메인의 ReadService, ' +
-        '쓰기 연계는 이벤트를 사용하라 (05-layer-responsibility.md / 11-query-strategy.md).',
+        '쓰기 연계는 이벤트를 사용하라 (04-layer-responsibility.md / 10-query-strategy.md).',
       severity: 'error',
       from: { path: '^src/modules/([^/]+)/' },
       to: {
         path: '^src/modules/([^/]+)/.+\\.(repository|entity)\\.ts$',
         pathNot: '^src/modules/$1/',
+      },
+    },
+    {
+      name: 'no-cross-module-services',
+      comment:
+        '다른 도메인의 service를 직접 import 금지(ReadService 제외). 도메인 간 읽기는 그 도메인이 공개한 ' +
+        '*ReadService(`*-read.service.ts`)만 주입하고, 쓰기 연계는 이벤트를 사용하라. service를 무분별하게 ' +
+        '가로질러 부르면 모듈 경계가 붕괴된다 (04-layer-responsibility.md / 10-query-strategy.md).',
+      severity: 'error',
+      from: { path: '^src/modules/([^/]+)/' },
+      to: {
+        // 타 도메인의 *.service.ts. 같은 모듈 내부와 읽기 전용 *-read.service.ts(공개 읽기 API)는 예외.
+        path: '^src/modules/([^/]+)/.+\\.service\\.ts$',
+        pathNot: ['^src/modules/$1/', '[-.]read\\.service\\.ts$'],
       },
     },
     {

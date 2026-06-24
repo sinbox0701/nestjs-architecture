@@ -12,6 +12,15 @@
 - **DON'T**: `unwrap().field` 패턴, controller에서 repository 직접 호출, for문 안에서 추가 쿼리
 - **복잡 조회**: 집계·대시보드는 Kysely ReadModel로 우회 (`10-query-strategy.md` 참조)
 
+## 목차
+
+이 문서는 길다. 필요한 섹션만 골라 읽는다.
+
+- [`*.module.ts`](#modulets) · [Controller](#controller) · [Service](#service) (ReadService/Policy 분리, 입출력 규칙)
+- [Repository](#repository) (파라미터 규칙, Soft Delete 필터) · [Entity](#entity) (메서드 경계, 필드 추가 전수조사)
+- [DTO](#dto) (파일 작성 규칙, 공유 Data 클래스) · [Exception](#exception) · [Event Handler](#event-handler)
+- [Unit of Work / EntityManager 스코프](#unit-of-work--entitymanager-스코프) · [MikroORM 관계 처리 규칙](#mikroorm-관계-처리-규칙) (load/getEntity/unwrap, Aggregate Root, Raw SQL)
+
 ---
 
 ## `*.module.ts`
@@ -56,6 +65,9 @@ UserReadService; // getUserList, getUser, 스코프 필터, 접근 제어
 
 **분리 기준**: 조회 메서드가 5개 이상이거나, 조회에 권한 판단 같은 복합 로직이 들어갈 때.
 **위치**: 같은 `service/` 폴더 내에 둔다.
+**파일명**: `<도메인>-read.service.ts`(클래스 `XxxReadService`). 이것이 **다른 도메인이 직접 import할 수 있는 유일한 service**다 — dep-cruiser `no-cross-module-services`가 그 외 cross-module `*.service.ts` import를 차단한다.
+
+> **레퍼런스 부재 안내** — 스타터에는 `*ReadService` 구현 예시가 없다. 모듈이 `auth`·`identity` 둘뿐이고 둘은 `UserCredentialPort`(DIP)로 연결돼 도메인 간 읽기가 발생하지 않기 때문이다(구성상 미발생). 세 번째 도메인이 다른 도메인을 읽을 때 이 패턴을 처음 적용하게 된다. 상세: `10-query-strategy.md`.
 
 > **ReadService vs Kysely ReadModel** — 헷갈리기 쉬우니 구분한다. `*ReadService`는 **MikroORM(엔티티) 기반 조회**를 서비스 레이어에서 분리한 것이다. 반면 다중 JOIN·GROUP BY·집계처럼 엔티티 모델이 어색한 **복잡/대시보드 조회**는 `<domain>/read-model/`의 **Kysely ReadModel**(읽기 전용, 엔티티 우회)로 짠다. 상세: `10-query-strategy.md`.
 
@@ -329,7 +341,8 @@ async getUser(actor: AuthSubject, id: number): Promise<UserData> {
 - HTTP 요청 경로는 `@mikro-orm/nestjs`가 **요청마다 EntityManager를 fork**(RequestContext)해 주므로 identity map이 요청 간 격리된다. 서비스/레포는 주입받은 EM을 그대로 쓴다.
 - **요청 스코프 밖**에서 도는 코드 — 크론 잡, `EventEmitter2` 핸들러의 async 흐름, 부트스트랩 스크립트 — 는 RequestContext가 없으므로 **반드시 EM을 fork**한다. 안 하면 전역 EM 공유로 `allowGlobalContext` 에러나 identity map 오염이 난다.
   - NestJS 메서드: `@CreateRequestContext()` 데코레이터(MikroORM 제공)를 핸들러/크론 메서드에 단다.
-  - 수동: `await this.em.fork().transactional(...)` 또는 `const em = this.orm.em.fork()`.
+  - 수동: `await RequestContext.create(orm.em, async () => { … })` 또는 `const em = this.orm.em.fork()`.
+  - 레퍼런스(`identity/handler/user-created.handler.ts`)는 수동 `RequestContext.create(orm.em, …)`를 쓴다 — DB를 만지는 블록만 컨텍스트로 감싸 범위를 명시적으로 좁히려는 선택이다(데코레이터·수동 둘 다 유효).
 - `@Transactional()` 내부에서 `eventEmitter.emit()`을 호출하지 않는다(커밋 전 핸들러 EM 공유로 충돌). 이벤트는 트랜잭션 완료 후 발행한다(위 Service 규칙 참조).
 
 ---
