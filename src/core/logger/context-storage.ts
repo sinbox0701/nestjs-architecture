@@ -18,13 +18,13 @@ export class ContextStorage {
    * visible in Tempo. Falls back to the custom ALS-backed value when OTel is
    * disabled or there is no active span.
    */
-  public static getCurrnetContextSign(): string {
+  public static getCurrentContextSign(): string {
     const otel = getTraceContext();
     if (otel?.traceId) return otel.traceId;
     return this.contextStorage.getStore()?.get(ContextStorage.FRAMEWORK_SIGNATURE_KEY) ?? 'NONE';
   }
 
-  public static getCurrnetContextCaller(): string {
+  public static getCurrentContextCaller(): string {
     return this.contextStorage.getStore()?.get(ContextStorage.FRAMEWORK_NAME_KEY) ?? null;
   }
 

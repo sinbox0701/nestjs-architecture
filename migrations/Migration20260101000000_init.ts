@@ -5,7 +5,7 @@ import { Migration } from '@mikro-orm/migrations';
  *
  * 단일 CREATE 베이스라인이다(첫 baseline cutoff). 엔티티 변경은 이후 별도 마이그레이션으로 누적한다.
  * 모든 DDL은 **idempotent**다(IF NOT EXISTS / pg_constraint 가드) — fresh DB를 schema:create로 만든 뒤
- * 마이그레이션을 적용하는 경로에서도 안전해야 하기 때문. 참조: docs/convention/10-deployment.md
+ * 마이그레이션을 적용하는 경로에서도 안전해야 하기 때문. 참조: docs/convention/09-deployment.md
  *
  * unique는 partial index(WHERE deleted_at IS NULL)로 건다 — soft-delete 후 동명/동일 이메일 재사용 허용.
  */

@@ -18,7 +18,7 @@ export class Team extends BaseEntity {
   @Property({ type: 'varchar', length: 100 })
   name!: string;
 
-  // FK 컬럼은 인덱스 필수(11-query-strategy): JOIN seq scan + 부모 삭제 시 자식 풀스캔/락 방지.
+  // FK 컬럼은 인덱스 필수(10-query-strategy): JOIN seq scan + 부모 삭제 시 자식 풀스캔/락 방지.
   @ManyToOne(() => Role, { ref: true, index: true })
   role!: Ref<Role>;
 

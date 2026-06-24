@@ -35,12 +35,12 @@ export default defineConfig({
   highlighter: new SqlHighlighter(),
   namingStrategy: CustomNamingStrategy,
   loggerFactory: (options) => new OrmLogger(options),
-  // populate depth ≤2 → JOINED 기본. ≥3은 SELECT_IN을 쿼리별로 지정. 참조: docs/convention/11-query-strategy.md
+  // populate depth ≤2 → JOINED 기본. ≥3은 SELECT_IN을 쿼리별로 지정. 참조: docs/convention/10-query-strategy.md
   loadStrategy: LoadStrategy.JOINED,
   schemaGenerator: {
     // FK 제약을 DB 레벨로 생성해 참조 무결성을 DB가 보장한다.
     // 테스트 teardown은 `TRUNCATE ... CASCADE`(truncateAll)가 FK 의존 행까지 정리하므로
-    // FK가 켜져 있어도 순서 의존 문제가 없다. 참조: docs/convention/09-testing.md
+    // FK가 켜져 있어도 순서 의존 문제가 없다. 참조: docs/convention/08-testing.md
     createForeignKeyConstraints: true,
   },
   pool: {
@@ -57,7 +57,7 @@ export default defineConfig({
     // MikroORM이 DDL을 의존 순서대로 정렬해 발행하므로 FK가 켜져 있어도 안전하다.
     disableForeignKeys: false,
     // 초기 CREATE 마이그레이션을 생성하면 dev/prod 단일 소스가 유지된다.
-    // 참조: docs/convention/10-deployment.md (Baseline 전진 절차)
+    // 참조: docs/convention/09-deployment.md (Baseline 전진 절차)
   },
   filters: {
     softDelete: {

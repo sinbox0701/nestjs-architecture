@@ -31,7 +31,7 @@ export default [
 
       // ── console.log 차단: FrameworkLogger 사용 강제 ──
       // 부트스트랩 실패 등 logger 초기화 이전 경로의 console.error만 허용한다.
-      // 참조: docs/convention/07-naming-and-style.md
+      // 참조: docs/convention/06-naming-and-style.md
       'no-console': ['error', { allow: ['error'] }],
 
       'unused-imports/no-unused-imports': 'warn',
@@ -62,7 +62,7 @@ export default [
 
       // ── Rule 3b: @mikro-orm/decorators (non-legacy) import 금지 ──
       // v7에서는 @mikro-orm/decorators/legacy를 사용해야 한다.
-      // 참조: docs/convention/05-layer-responsibility.md
+      // 참조: docs/convention/04-layer-responsibility.md
       'no-restricted-imports': [
         'error',
         {
@@ -70,7 +70,7 @@ export default [
             {
               name: '@mikro-orm/decorators',
               message:
-                '@mikro-orm/decorators 대신 @mikro-orm/decorators/legacy를 사용하세요. 참조: docs/convention/05-layer-responsibility.md',
+                '@mikro-orm/decorators 대신 @mikro-orm/decorators/legacy를 사용하세요. 참조: docs/convention/04-layer-responsibility.md',
             },
           ],
         },
@@ -82,7 +82,7 @@ export default [
         {
           selector: "CallExpression[callee.property.name='unwrap']",
           message:
-            'unwrap() 사용을 지양하세요. PK만 필요하면 ref.id, 필드가 필요하면 getEntity()를 사용하세요. 참조: docs/convention/05-layer-responsibility.md',
+            'unwrap() 사용을 지양하세요. PK만 필요하면 ref.id, 필드가 필요하면 getEntity()를 사용하세요. 참조: docs/convention/04-layer-responsibility.md',
         },
       ],
     },
@@ -177,7 +177,7 @@ export default [
         {
           selector: "Decorator[expression.callee.name='ApiProperty']",
           message:
-            '@ApiProperty() 사용을 지양하세요. class-validator 데코레이터와 JSDoc을 사용하세요. 참조: docs/convention/07-naming-and-style.md',
+            '@ApiProperty() 사용을 지양하세요. class-validator 데코레이터와 JSDoc을 사용하세요. 참조: docs/convention/06-naming-and-style.md',
         },
         {
           selector: "CallExpression[callee.property.name='unwrap']",

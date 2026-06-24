@@ -83,7 +83,7 @@ export class FrameworkLogger extends ConsoleLogger {
     timestampDiff: string,
   ): string {
     const caller = this.getCallerInfo(logLevel);
-    const sign = ContextStorage.getCurrnetContextSign();
+    const sign = ContextStorage.getCurrentContextSign();
     return super.formatMessage(
       logLevel,
       `[${caller}][${sign}] ${message}`,
