@@ -133,6 +133,11 @@ export class RedisClient implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis 연결 종료됨');
   }
 
+  /** node-redis 커넥션이 명령을 받을 준비가 됐는지. fail-closed 분기(Redis 불가 시 거부) 판단용. */
+  get isReady(): boolean {
+    return this.client.isReady;
+  }
+
   // ===== KV 메서드 =====
 
   async set(key: string, value: string, expiryMode?: 'EX' | 'PX', time?: number): Promise<'OK' | null> {
@@ -391,6 +396,18 @@ export class RedisClient implements OnModuleInit, OnModuleDestroy {
       throw new Error(`Redis not ready for acquireLock: ${key}`);
     }
     return this.acquireLock(key, ttlSeconds);
+  }
+
+  /**
+   * 원자적 compare-and-set: 저장값이 expected와 같을 때만 next로 교체하고 TTL을 건다(단일 Lua).
+   * GET→비교→SET을 별도 명령으로 하면 동시 요청에서 TOCTOU race가 나므로 CAS로 묶는다.
+   * @returns 교체 성공(일치) 시 true, 불일치/키부재 시 false.
+   */
+  async compareAndSet(key: string, expected: string, next: string, ttlSeconds: number): Promise<boolean> {
+    const script =
+      "if redis.call('get', KEYS[1]) == ARGV[1] then redis.call('set', KEYS[1], ARGV[2], 'EX', ARGV[3]); return 1 else return 0 end";
+    const result = await this.client.eval(script, { keys: [key], arguments: [expected, next, String(ttlSeconds)] });
+    return result === 1;
   }
 
   async releaseLock(key: string, token: string): Promise<boolean> {

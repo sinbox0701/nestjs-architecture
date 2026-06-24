@@ -77,9 +77,15 @@ export abstract class ResourcePolicy<TEntity extends TeamScoped> {
  * 로드 + Tier2 인가를 한 번에 묶는다. 인스턴스 라우트(`:id`)에서 "엔티티만 로드하고 authorize를
  * 빠뜨리는" 실수(= cross-team IDOR)를 막기 위한 안전 경로다. authorize 실패 시 ForbiddenException.
  *
+ * `options.maskNotFound`를 주면 인가 실패(Forbidden)를 그 팩토리가 만든 예외로 바꿔 던진다.
+ * 존재가 민감하고 ID가 추측 가능한 리소스에서 "존재하지만 권한 없음(403)"과 "미존재(404)"를 같은
+ * 응답으로 만들어 enumeration 오라클을 없앤다. **리소스 미존재 시 loader가 던지는 예외와 동일한
+ * 팩토리를 넘겨야** 두 경로가 구분 불가능해진다.
+ *
  * @example
- *   const scenario = await loadAndAuthorize(
- *     (id) => this.repo.getById(id), this.policy, actor, Action.UPDATE, id,
+ *   const user = await loadAndAuthorize(
+ *     (id) => this.getUserOrThrow(id), this.policy, actor, Action.READ, id,
+ *     { maskNotFound: () => USER_EXCEPTIONS.NOT_FOUND() },
  *   );
  */
 export async function loadAndAuthorize<TEntity extends TeamScoped>(
@@ -88,8 +94,16 @@ export async function loadAndAuthorize<TEntity extends TeamScoped>(
   actor: AuthSubject,
   action: ActionLike,
   id: number,
+  options?: { maskNotFound?: () => Error },
 ): Promise<TEntity> {
   const entity = await loader(id);
-  policy.authorize(actor, action, entity);
+  try {
+    policy.authorize(actor, action, entity);
+  } catch (e) {
+    if (options?.maskNotFound && e instanceof ForbiddenException) {
+      throw options.maskNotFound();
+    }
+    throw e;
+  }
   return entity;
 }

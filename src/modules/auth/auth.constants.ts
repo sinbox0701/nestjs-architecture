@@ -1,5 +1,5 @@
 /** 강제 로그아웃 blocklist 키 prefix. 단일 출처는 core/auth — 등록측(도메인)이 재export해 공유. */
-export { BLOCKLIST_PREFIX } from '@/core/auth/auth.constants';
+export { BLOCKLIST_PREFIX, SESSION_EPOCH_PREFIX } from '@/core/auth/auth.constants';
 
 /** 인증 쿠키 키 상수. */
 export const AUTH_COOKIE = {
@@ -9,3 +9,6 @@ export const AUTH_COOKIE = {
 
 /** Refresh Token 저장소 Redis 키 prefix. `rt:{userId}:{family}` → 현재 유효한 RT jti. */
 export const REFRESH_STORE_PREFIX = 'rt:';
+
+/** 로그인 실패 카운터 Redis 키 prefix. `login:fail:{email}` → 누적 실패 횟수(잠금 윈도 내). */
+export const LOGIN_FAIL_PREFIX = 'login:fail:';

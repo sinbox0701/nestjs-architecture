@@ -34,7 +34,7 @@ describe('TokenService.signAccessToken', () => {
   });
 
   it('access token 페이로드를 AuthIdentity로 구성한다', async () => {
-    const { token, jti } = await service.signAccessToken(identity);
+    const { token, jti } = await service.signAccessToken(identity, 0);
 
     expect(token).toBe('signed.jwt.token');
     expect(jti).toEqual(expect.any(String));
@@ -43,13 +43,15 @@ describe('TokenService.signAccessToken', () => {
     expect(payload).toMatchObject({
       sub: 42,
       jti,
+      typ: 'access', // AuthGuard가 RT 오용을 거부하기 위한 타입 표식
+      epoch: 0, // 세션 epoch 클레임(사용자 단위 무효화 판정)
       globalRoles: [GlobalRole.SUPER],
       role: { id: 3, name: 'Red' },
     });
   });
 
   it('teams[].role 슬롯에 소속팀 직위(position)를 싣는다', async () => {
-    await service.signAccessToken(identity);
+    await service.signAccessToken(identity, 0);
     const payload = jwt.signAsync.mock.calls[0][0];
 
     // Tier1 capability는 role.name으로, Tier2 직위는 teams[].role 슬롯으로 분리되어 실린다.
@@ -57,8 +59,8 @@ describe('TokenService.signAccessToken', () => {
   });
 
   it('jti는 발급마다 달라진다(blocklist 키)', async () => {
-    const a = await service.signAccessToken(identity);
-    const b = await service.signAccessToken(identity);
+    const a = await service.signAccessToken(identity, 0);
+    const b = await service.signAccessToken(identity, 0);
     expect(a.jti).not.toBe(b.jti);
   });
 });

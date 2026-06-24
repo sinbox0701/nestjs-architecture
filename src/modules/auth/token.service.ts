@@ -12,6 +12,8 @@ import { AuthIdentity } from './user-credential.port';
 interface AccessTokenPayload {
   sub: number;
   jti: string;
+  typ: 'access'; // 토큰 타입 표식 — RT가 AT로 오용되는 것을 AuthGuard가 거부하기 위함
+  epoch: number; // 발급 시점 세션 epoch. AuthGuard가 저장된 epoch와 대조해 사용자 단위 무효화 판정
   globalRoles: AuthIdentity['globalRoles'];
   teams: TeamMembership[];
   role: AuthIdentity['role'];
@@ -35,12 +37,17 @@ export class TokenService {
     private readonly configService: ConfigService,
   ) {}
 
-  /** Access Token 발급. 반환된 jti는 강제 로그아웃 blocklist 키로 쓰인다. */
-  async signAccessToken(identity: AuthIdentity): Promise<{ token: string; jti: string }> {
+  /**
+   * Access Token 발급. 반환된 jti는 강제 로그아웃 blocklist 키로 쓰인다.
+   * `epoch`는 발급 시점 세션 epoch(`SessionEpochStore.current`) — 사용자 단위 무효화 판정용.
+   */
+  async signAccessToken(identity: AuthIdentity, epoch: number): Promise<{ token: string; jti: string }> {
     const jti = randomUUID();
     const payload: AccessTokenPayload = {
       sub: identity.id,
       jti,
+      typ: 'access',
+      epoch,
       globalRoles: identity.globalRoles,
       teams: [{ teamId: identity.team.id, role: identity.team.position }], // teams[].role 슬롯에 직위(position)를 싣는다
       role: identity.role,

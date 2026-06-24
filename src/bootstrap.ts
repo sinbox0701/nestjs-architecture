@@ -37,6 +37,24 @@ export async function bootstrap(): Promise<INestApplication> {
     maxAge: 3600,
   });
 
+  // CSRF 방어(쿠키 인증 보완). 쿠키는 브라우저가 cross-site 요청에도 자동 전송되므로(SameSite=lax의 한계),
+  // 상태변경 요청(POST/PUT/PATCH/DELETE)의 Origin을 CORS allowlist와 대조해 한 번 더 막는다.
+  // Origin이 없는 요청(서버-서버, 동일 출처 단순 GET)은 통과 — CSRF는 브라우저 cross-site 시나리오에 한정.
+  const allowedOrigins = new Set(corsUrls);
+  const stateChangingMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    if (!stateChangingMethods.has(req.method)) return next();
+    const origin = req.headers.origin;
+    if (origin && !allowedOrigins.has(origin)) {
+      res.status(403).json({
+        success: false,
+        error: { code: 'CSRF_ORIGIN_REJECTED', message: '허용되지 않은 출처의 요청입니다.' },
+      });
+      return;
+    }
+    next();
+  });
+
   app.useGlobalFilters(new HttpExceptionFilter(configService));
 
   app.set('query parser', 'extended');

@@ -21,4 +21,10 @@ export const AUTH_EXCEPTIONS = {
       '재사용된 refresh token이 감지되어 세션을 무효화했습니다. 다시 로그인해주세요.',
       HttpStatus.UNAUTHORIZED,
     ),
+  ACCOUNT_LOCKED: () =>
+    new HttpException(
+      'AUTH_ACCOUNT_LOCKED',
+      '로그인 시도가 너무 많아 계정이 일시적으로 잠겼습니다. 잠시 후 다시 시도해주세요.',
+      HttpStatus.TOO_MANY_REQUESTS,
+    ),
 };

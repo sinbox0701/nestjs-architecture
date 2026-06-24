@@ -84,6 +84,7 @@ export const authConfig = registerAs('auth', () => {
     sessionMaxAge: e.SESSION_MAX_AGE,
     maxLoginAttempts: e.AUTH_MAX_LOGIN_ATTEMPTS,
     lockDurationMinutes: e.AUTH_LOCK_DURATION_MINUTES,
+    blocklistFailClosed: e.AUTH_BLOCKLIST_FAIL_CLOSED,
     cookieSecure: e.COOKIE_SECURE,
     cookieSameSite: e.COOKIE_SAME_SITE,
     cookieDomain: e.COOKIE_DOMAIN,
