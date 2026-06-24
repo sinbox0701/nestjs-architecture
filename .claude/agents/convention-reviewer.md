@@ -17,14 +17,14 @@ model: opus
 
 ## 체크리스트 (linter가 못 잡는 것 위주 — typecheck/lint/dep:check는 CI가 잡음)
 
-- **예외**: 인라인 `throw new HttpException/Error` 금지, `exception/` 팩토리 상수 사용 (CLAUDE.md #3, 05).
-- **로깅**: `console.*` 금지, `FrameworkLogger` + 추적 식별자 (13, 07).
-- **접근제어**: 보호 라우트에 `@Requires`/`@Public` (default-deny), 인스턴스 라우트는 service에서 `ResourcePolicy.authorize`/`loadAndAuthorize` 호출했는가. JWT claim 신뢰 경계 (06).
-- **레이어 책임**: Controller 비즈니스 로직 없음·`R.*` 응답, Service orchestration, Repository 타 도메인 직접 주입 금지, Entity 캡슐화 (05).
-- **모듈 경계**: 타 도메인 repository/entity 직접 import 금지(이벤트/ReadService) (03, 11).
-- **MikroORM**: 데코레이터 `/legacy` 경로, 습관적 unwrap/반복 load 금지 (CLAUDE.md #2, 11).
-- **DTO/네이밍**: bundled `.dto.ts`, `행위+대상+Request/Response`, union 대신 enum, nullable `?:`(| null 금지), 컨트롤러 메서드명 짧게 (07, 12).
-- **API 설계**: URL kebab+복수형, 동사 금지, 상태코드 표준 (12).
+- **예외**: 인라인 `throw new HttpException/Error` 금지, `exception/` 팩토리 상수 사용 (CLAUDE.md #3, 04).
+- **로깅**: `console.*` 금지, `FrameworkLogger` + 추적 식별자 (12, 06).
+- **접근제어**: 보호 라우트에 `@Requires`/`@Public` (default-deny), 인스턴스 라우트는 service에서 `ResourcePolicy.authorize`/`loadAndAuthorize` 호출했는가. JWT claim 신뢰 경계 (05).
+- **레이어 책임**: Controller 비즈니스 로직 없음·`R.*` 응답, Service orchestration, Repository 타 도메인 직접 주입 금지, Entity 캡슐화 (04).
+- **모듈 경계**: 타 도메인 repository/entity 직접 import 금지(이벤트/ReadService) (02, 10).
+- **MikroORM**: 데코레이터 `/legacy` 경로, 습관적 unwrap/반복 load 금지 (CLAUDE.md #2, 10).
+- **DTO/네이밍**: bundled `.dto.ts`, `행위+대상+Request/Response`, union 대신 enum, nullable `?:`(| null 금지), 컨트롤러 메서드명 짧게 (06, 11).
+- **API 설계**: URL kebab+복수형, 동사 금지, 상태코드 표준 (11).
 - **비효율**: N+1, 불필요한 flush, 미사용 import/변수, 중복 로직.
 
 ## 출력 (= 너의 최종 메시지, 빈 응답 금지)

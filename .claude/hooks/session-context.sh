@@ -9,4 +9,4 @@ last=$(git log -1 --pretty='%h %s' 2>/dev/null)
 
 echo "[backend-template] 브랜치: ${branch:-?} | 미커밋 파일: ${dirty} | 미푸시 커밋: ${ahead}"
 echo "마지막 커밋: ${last:-(none)}"
-echo "참고: 컨벤션 docs/convention/, 접근제어 06, 관측성 13. 커밋은 명시 지시 시에만."
+echo "참고: 컨벤션 docs/convention/, 접근제어 05, 관측성 12. 커밋은 명시 지시 시에만."

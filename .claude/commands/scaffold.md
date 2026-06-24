@@ -68,3 +68,4 @@ repository.ts: @Injectable() export class <Repository> extends BaseRepository<<E
 - Entity는 반드시 static create() 팩토리를 포함한다
 - Exception은 반드시 팩토리 상수 패턴을 따른다
 - 빈 폴더에는 .gitkeep을 넣는다
+- **접근제어 스텁(Tier2 누락=IDOR 방지)**: 보호 인스턴스 라우트(`:id`)를 만들면 — ① `access/<domain>.resource-policy.ts`에 `ResourcePolicy<Entity>` 상속 스텁, ② service의 `:id` 메서드에 `loadAndAuthorize((id) => this.repo.getById(id), this.policy, actor, Action.X, id)` 호출 스텁을 **함께** 생성한다. 컨트롤러 핸들러엔 `@Requires(Action.X, '<resource>')`(Tier1)를 단다. 상세: docs/convention/05-access-control.md.

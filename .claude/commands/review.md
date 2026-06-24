@@ -17,7 +17,7 @@ argument-hint: '[모듈명 또는 파일 경로 또는 Linear 이슈 ID (예: BE
 
 ## 준비
 
-1. docs/convention/ 아래 모든 컨벤션 문서(00~10, 02 제외)를 읽는다.
+1. docs/convention/ 아래 컨벤션 문서(00~12)를 읽는다(작업 범위에 해당하는 것 위주, 인덱스는 README).
 2. 이슈 모드: Linear MCP로 이슈를 읽어 작업 범위, 완료 조건 파악.
 3. 스펙 모드: 스펙 파일을 읽어 설계 섹션과 검증 조건 파악.
 4. 컨벤션 모드: 모듈/파일 특정 또는 src/modules/ 전체.
@@ -52,12 +52,12 @@ Exception: 인라인 예외 생성 금지, 예외 팩토리 상수 사용
 - load() 반복문/entity메서드/DTO생성자에서 사용 금지
 - QueryBuilder: applyFilters() 호출 또는 deletedAt 조건 직접 추가
 
-### 5. 접근제어 (05-access-control.md)
+### 5. 접근제어 (05-access-control.md) — default-deny 3-tier
 
-- 모든 엔드포인트에 @Roles(RoleCode.X) (src/lib/access-control 에서 import) 또는 @Public() 적용
-- @Roles() 없는 인증 필요 라우트: 글로벌 RolesGuard가 인증은 강제하지만 역할 제한 없음
-- @Public() (src/common/decorators/auth-public.decorator.ts): 비인증 허용
-- RoleCode: USER / ADMIN / SUPER
+- **Tier1 RBAC**: 보호 라우트는 `@Requires(Action.X, '<resourceType>')`(`@/lib/access-control`) **또는** `@Public()`가 **반드시** 있어야 한다. 둘 다 없으면 `PolicyGuard`가 default-deny로 거부(403) — 인증만으론 통과 못 함.
+- **@Public()** (`src/common/decorators/auth-public.decorator.ts`): 비인증 허용(Tier0도 스킵).
+- **Tier2 ABAC**: 인스턴스/소유 리소스 라우트(`:id`, 목록 스코프)는 service에서 `ResourcePolicy.authorize`/`loadAndAuthorize`를 호출했는가(소속팀 소유권). controller `@Requires`만으론 IDOR 못 막음.
+- capability는 역할×액션 매트릭스(`access/*.matrix.ts`)로 정의, 소유권 정제는 `access/*.resource-policy.ts`. JWT claim(teams/globalRoles/role)은 발급자가 DB 기준으로만 채움(클라 입력 신뢰 금지).
 
 ### 6. 로깅
 
