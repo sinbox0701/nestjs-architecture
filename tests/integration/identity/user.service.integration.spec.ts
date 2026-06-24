@@ -119,8 +119,8 @@ describe('UserService (Integration)', () => {
       position: TeamPosition.MEMBER,
     });
     const outsider = actor(1003, teamB.id, TeamPosition.LEADER);
-    // cross-team read는 Tier2 authorize에서 거부(403).
-    await expect(service.getUser(outsider, target.id)).rejects.toThrow('해당 리소스에 대한 권한이 없습니다');
+    // cross-team read는 404로 마스킹된다(미존재와 동일 응답 → enumeration 차단). IDOR은 여전히 거부.
+    await expect(service.getUser(outsider, target.id)).rejects.toThrow('사용자를 찾을 수 없습니다');
   });
 
   it('목록은 actor의 소속팀으로 스코프되고, SUPER는 전체를 본다', async () => {
