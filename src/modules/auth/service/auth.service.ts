@@ -5,12 +5,13 @@ import { parseDurationToSeconds } from '@/common/utils/time.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { RedisClient } from '@/lib/redis/redis.client';
 
-import { BLOCKLIST_PREFIX, LOGIN_FAIL_PREFIX } from './auth.constants';
-import { AUTH_EXCEPTIONS } from './exception/auth.exception';
-import { RefreshTokenStore } from './refresh-token.store';
-import { SessionEpochStore } from './session-epoch.store';
+import { BLOCKLIST_PREFIX, LOGIN_FAIL_PREFIX } from '../auth.constants';
+import { AUTH_EXCEPTIONS } from '../exception/auth.exception';
+import { RefreshTokenStore } from '../store/refresh-token.store';
+import { SessionEpochStore } from '../store/session-epoch.store';
+import { AuthIdentity, USER_CREDENTIAL_PORT, UserCredentialPort } from '../user-credential.port';
+
 import { RefreshTokenPayload, TokenService } from './token.service';
-import { AuthIdentity, USER_CREDENTIAL_PORT, UserCredentialPort } from './user-credential.port';
 
 export interface IssuedTokens {
   accessToken: string;

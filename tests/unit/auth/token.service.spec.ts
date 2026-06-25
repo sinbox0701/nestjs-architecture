@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { GlobalRole } from '@/lib/access-control';
-import { TokenService } from '@/modules/auth/token.service';
+import { TokenService } from '@/modules/auth/service/token.service';
 import { AuthIdentity } from '@/modules/auth/user-credential.port';
 import { TeamPosition } from '@/modules/identity/enum/team-position.enum';
 

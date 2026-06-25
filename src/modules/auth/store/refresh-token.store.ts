@@ -7,8 +7,8 @@ import { parseDurationToSeconds } from '@/common/utils/time.util';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { RedisClient } from '@/lib/redis/redis.client';
 
-import { REFRESH_STORE_PREFIX } from './auth.constants';
-import { AUTH_EXCEPTIONS } from './exception/auth.exception';
+import { REFRESH_STORE_PREFIX } from '../auth.constants';
+import { AUTH_EXCEPTIONS } from '../exception/auth.exception';
 
 /**
  * Refresh Token 저장소 (Redis). family 단위로 현재 유효한 RT jti 하나만 보관한다.
