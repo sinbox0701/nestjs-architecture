@@ -5,7 +5,7 @@ import { CookieOptions, Response } from 'express';
 
 import { parseDurationToSeconds } from '@/common/utils/time.util';
 
-import { AUTH_COOKIE } from './auth.constants';
+import { AUTH_COOKIE } from '../auth.constants';
 
 /**
  * 인증 토큰을 httpOnly 쿠키로 전달/제거한다. (localStorage 금지 — XSS 방지)

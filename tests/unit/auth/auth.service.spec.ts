@@ -2,10 +2,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { GlobalRole } from '@/lib/access-control';
 import { RedisClient } from '@/lib/redis/redis.client';
-import { AuthService } from '@/modules/auth/auth.service';
-import { RefreshTokenStore } from '@/modules/auth/refresh-token.store';
-import { SessionEpochStore } from '@/modules/auth/session-epoch.store';
-import { TokenService } from '@/modules/auth/token.service';
+import { AuthService } from '@/modules/auth/service/auth.service';
+import { TokenService } from '@/modules/auth/service/token.service';
+import { RefreshTokenStore } from '@/modules/auth/store/refresh-token.store';
+import { SessionEpochStore } from '@/modules/auth/store/session-epoch.store';
 import { AuthIdentity, UserCredentialPort } from '@/modules/auth/user-credential.port';
 import { TeamPosition } from '@/modules/identity/enum/team-position.enum';
 

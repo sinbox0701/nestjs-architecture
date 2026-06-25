@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { FrameworkLogger } from '@/core/logger/framework-logger';
 import { RedisClient } from '@/lib/redis/redis.client';
 
-import { SESSION_EPOCH_PREFIX } from './auth.constants';
+import { SESSION_EPOCH_PREFIX } from '../auth.constants';
 
 /**
  * 세션 epoch 저장소 (Redis) — 사용자 단위 토큰 무효화.

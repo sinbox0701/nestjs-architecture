@@ -3,11 +3,11 @@ import { Module } from '@nestjs/common';
 import { IdentityModule } from '@/modules/identity/identity.module';
 
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthCookieService } from './auth-cookie.service';
-import { RefreshTokenStore } from './refresh-token.store';
-import { SessionEpochStore } from './session-epoch.store';
-import { TokenService } from './token.service';
+import { AuthService } from './service/auth.service';
+import { AuthCookieService } from './service/auth-cookie.service';
+import { TokenService } from './service/token.service';
+import { RefreshTokenStore } from './store/refresh-token.store';
+import { SessionEpochStore } from './store/session-epoch.store';
 
 /**
  * 인증 모듈 (login/refresh/logout).

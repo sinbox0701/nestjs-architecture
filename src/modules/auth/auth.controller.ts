@@ -7,9 +7,9 @@ import { ApiDataResponse, R } from '@/common/base/response';
 import { Public } from '@/common/decorators/auth-public.decorator';
 
 import { AUTH_COOKIE } from './auth.constants';
-import { AuthService, IssuedTokens } from './auth.service';
-import { AuthCookieService } from './auth-cookie.service';
 import { LoginRequest, LoginResponse } from './dto/login.dto';
+import { AuthService, IssuedTokens } from './service/auth.service';
+import { AuthCookieService } from './service/auth-cookie.service';
 
 @Controller('auth')
 export class AuthController {

@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 
 import { TeamMembership } from '@/lib/access-control';
 
-import { AuthIdentity } from './user-credential.port';
+import { AuthIdentity } from '../user-credential.port';
 
 /** Access Token 페이로드 (AuthGuard가 읽어 AuthSubject로 주입). */
 interface AccessTokenPayload {
