@@ -1,0 +1,30 @@
+# backend-template — GitLab CI (MR 머지 게이트)
+# camp-backend 구성과 동일: MR 단계 lint + build 검증.
+# 이 파일이 존재하면 GitLab Auto DevOps 는 자동 비활성화된다.
+# (테스트는 로컬에서 — postgres/redis/rabbitmq 의존이라 CI 게이트에서 제외)
+
+stages: [verify]
+
+# MR 파이프라인만 허용 (Auto DevOps / 브랜치+MR 중복 파이프라인 차단)
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - when: never
+
+verify:
+  stage: verify
+  image: node:24
+  tags: [amd64]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  cache:
+    key:
+      files: [pnpm-lock.yaml]
+    paths: [.pnpm-store]
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm lint:check
+    - pnpm build
