@@ -41,6 +41,26 @@ git status --short / git diff --name-only / git diff --cached --name-only
 - 설명: 한글, 간결하게 핵심만
 - **Co-Authored-By 포함하지 않는다**
 
+#### Linear 이슈 참조 (GitLab↔Linear 연동)
+
+커밋 본문 마지막 줄에 관련 Linear 이슈 ID를 트레일러로 넣어 GitLab↔Linear 자동 링크를 활성화한다.
+
+- **이슈 ID 추출 순서**: ① 인자로 받은 이슈 ID → ② 현재 브랜치명에서 추출(`be-189`, `feat/BE-189` 등 `[A-Z]{2,}-\d+` 패턴, 대소문자 무시) → ③ 못 찾으면 생략(추측 금지).
+- **트레일러 형식**:
+  - 기본은 `Refs BE-xxx` (이슈에 활동/커밋만 연결, 상태는 안 바꿈).
+  - 그 커밋/머지로 해당 이슈가 **완료**되면 `Closes BE-xxx` (MR 머지 시 Linear가 Done으로 자동 전이). 작업이 여러 커밋/여러 sub 이슈로 이어지면 `Closes`를 미리 쓰지 말 것.
+  - 커밋이 특정 sub 이슈 범위면 그 sub ID를, parent 전체면 parent ID를 단다.
+- 코드 주석·테스트 설명엔 이슈 번호를 넣지 않는다(추적은 커밋/MR에서만).
+
+```
+feat(wargame): 조직 콘텐츠 수강생 풀이상태 profile축 배치 조회 추가
+
+- ChallengeRepository.getSolvingStatusMapByProfileIds 추가
+- 통합 테스트 3건
+
+Refs BE-193
+```
+
 ### 4단계: 커밋 생성
 
 각 논리 그룹별로: git add <파일들> 후 git commit -m "메시지"
