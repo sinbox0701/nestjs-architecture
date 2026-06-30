@@ -5,9 +5,16 @@
  * 의 경계 규칙을 의존 그래프 수준에서 자동 집행한다. ESLint(문법)가 못 잡는
  * "A 모듈이 B 모듈의 repository를 직접 import" 같은 경계 침식을 CI에서 차단한다.
  *
- * 레이어 의존 방향 (위 → 아래만 허용):
- *   modules → lib → core → common
- *   (core → lib 는 현행 허용: AuthGuard가 lib/access-control 사용)
+ * 강제하는 것 (아래 forbidden 규칙이 실제로 막는 것):
+ *   1) 역의존 금지: 하위 레이어(common/core/lib)가 modules를 import 못 한다.
+ *   2) 모듈 간 내부 침투 금지: 타 도메인의 entity/repository/service 직접 import 금지
+ *      (도메인 간 읽기는 그 도메인이 공개한 *-read.service.ts만, 쓰기 연계는 이벤트).
+ *   3) common은 순수 유지: core/lib에 대한 런타임 결합 지양 (warn).
+ *
+ * 주의: 이건 "modules → lib → core → common" 같은 단계 체인을 강제하는 게 아니다.
+ *   modules는 common/core/lib를 모두 자유롭게 import한다. 막는 것은 (a) 위로 향하는 의존과
+ *   (b) 다른 모듈 내부로의 침투뿐이다. 레이어 간 허용 방향은 "아래로만".
+ *   (core → lib 는 허용: AuthGuard가 lib/access-control 사용.)
  *
  * 실행: pnpm dep:check
  */
