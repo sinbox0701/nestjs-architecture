@@ -63,10 +63,12 @@ module.exports = {
     {
       name: 'no-cross-module-services',
       comment:
-        '다른 도메인의 service를 직접 import 금지(ReadService 제외). 도메인 간 읽기는 그 도메인이 공개한 ' +
-        '*ReadService(`*-read.service.ts`)만 주입하고, 쓰기 연계는 이벤트를 사용하라. service를 무분별하게 ' +
-        '가로질러 부르면 모듈 경계가 붕괴된다 (04-layer-responsibility.md / 10-query-strategy.md).',
-      severity: 'error',
+        '도메인 간 동기 연결은 Module imports/exports를 통한 "한방향" 직접 호출이 기본이다 ' +
+        '(02-module-rules.md#동기-vs-비동기-연결-선택). 순환은 no-circular가 error로 차단한다. ' +
+        '이 warn은 차단이 아니라 신호다 — cross-module service import가 늘어나면 경계 침식이 ' +
+        '시작됐다는 뜻이니, 읽기만 필요하면 *-read.service.ts, 순환·트랜잭션 분리가 필요하면 ' +
+        '이벤트 전환을 검토하라 (MOD-004).',
+      severity: 'warn',
       from: { path: '^src/modules/([^/]+)/' },
       to: {
         // 타 도메인의 *.service.ts. 같은 모듈 내부와 읽기 전용 *-read.service.ts(공개 읽기 API)는 예외.
