@@ -1,7 +1,13 @@
 {
   "//": "프로젝트 스코프 MCP 서버 템플릿. 사용하려면 .mcp.json 으로 복사하고 값을 채운다 (cp .mcp.json.example .mcp.json). .mcp.json 은 .gitignore 권장(크레덴셜 포함).",
   "//db-read": "설계 검증/스키마 대조용 읽기 전용 PostgreSQL. 반드시 read-only 사용자/플래그로 — 쓰기 권한 절대 부여 금지(사고 사례 있음). (Linear는 claude.ai 커넥터로 충분해 템플릿에서 제외했다.)",
+  "//guards": "이 레포의 컨벤션 룰 레지스트리·검증기(depcruise/드리프트 가드)를 노출하는 read-only MCP 서버 (scripts/mcp/server.mjs). 크레덴셜 없음 — convention/migration-reviewer 서브에이전트가 사용.",
   "mcpServers": {
+    "guards": {
+      "command": "node",
+      "args": ["scripts/mcp/server.mjs"],
+      "env": {}
+    },
     "db-read": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_READ_ONLY_URL}"],

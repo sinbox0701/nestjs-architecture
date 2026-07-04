@@ -40,6 +40,9 @@
     "dep:check": "depcruise src --config .dependency-cruiser.cjs",
     "doc:check": "node scripts/check-doc-refs.mjs",
     "config:check": "node scripts/check-config.mjs",
+    "rules:check": "node scripts/check-registry-drift.mjs",
+    "mcp:serve": "node scripts/mcp/server.mjs",
+    "mcp:smoke": "node scripts/mcp/smoke.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -107,6 +110,7 @@
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.4.0",
     "@mikro-orm/cli": "^7.0.7",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/cli": "^11.0.17",
     "@nestjs/schematics": "^11.0.10",
     "@nestjs/testing": "^11.1.17",
@@ -135,7 +139,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.0"
+    "typescript-eslint": "^8.58.0",
+    "yaml": "^2.9.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
