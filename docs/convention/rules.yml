@@ -1,0 +1,359 @@
+# docs/convention/rules.yml — 컨벤션 룰 레지스트리
+#
+# 규범 조항("~해야 한다 / ~금지")의 단일 색인. 산문 근거·예시·트레이드오프는 doc 필드가
+# 가리키는 컨벤션 문서에 있다. 모든 룰은 자신의 강제 수단(enforcement)을 선언한다:
+#   eslint | depcruise | script — 기계가 잡는다 (ref = 해당 설정의 룰/스크립트 이름)
+#   review-only                 — 기계 강제 불가 → 리뷰(사람/AI 에이전트) 체크리스트
+#
+# 정합성 가드: pnpm rules:check (scripts/check-registry-drift.mjs)
+#   — ref가 실제 eslint.config.mjs / .dependency-cruiser.cjs / scripts/ 에 존재하는지 검사.
+# MCP 노출: scripts/mcp/server.mjs 의 list_rules / get_rule.
+rules:
+  # ── MOD: 02-module-rules.md ──
+  - id: MOD-001
+    statement: '순환 의존을 금지한다(모듈 간뿐 아니라 파일 단위 순환 포함). 공통부를 아래 레이어로 내리거나 이벤트로 분리한다.'
+    severity: error
+    enforcement:
+      type: depcruise
+      ref: no-circular
+    doc: '02-module-rules.md#모듈-경계-자동-강제-depcheck--dependency-cruiser'
+
+  - id: MOD-002
+    statement: '하위 레이어(common/core/lib)는 modules(도메인)에 의존할 수 없다(위로 향하는 의존 금지). 단계 체인 강제가 아니다 — modules는 common/core/lib를 자유롭게 import하고, core → lib도 허용된다.'
+    severity: error
+    enforcement:
+      type: depcruise
+      ref:
+        - no-common-to-modules
+        - no-core-to-modules
+        - no-lib-to-modules
+    doc: '02-module-rules.md#모듈-경계-자동-강제-depcheck--dependency-cruiser'
+
+  - id: MOD-003
+    statement: '다른 도메인의 `*.repository.ts`/`*.entity.ts`를 직접 import하지 않는다. 도메인 간 읽기는 ReadService, 쓰기 연계는 이벤트를 사용한다.'
+    severity: error
+    enforcement:
+      type: depcruise
+      ref: no-cross-module-internals
+    doc: '02-module-rules.md#모듈-경계-자동-강제-depcheck--dependency-cruiser'
+
+  - id: MOD-004
+    statement: '도메인 간 동기 연결은 Module imports/exports를 통한 한방향 직접 호출이 기본이다(같은 트랜잭션·즉시 결과 필요 시 특히). 서로 마주 부르는 순환은 금지 — 순환이 생기거나 트랜잭션 경계가 달라도 되면 이벤트(비동기)로 전환한다. cross-module service import 증가는 depcruise warn이 신호로 잡는다.'
+    severity: warn
+    enforcement:
+      type: depcruise
+      ref: no-cross-module-services
+    doc: '02-module-rules.md#동기-vs-비동기-연결-선택'
+
+  - id: MOD-005
+    statement: 'common은 core/lib에 대한 런타임 결합을 새 코드에서 늘리지 않는다(순수 유틸 레이어 유지).'
+    severity: warn
+    enforcement:
+      type: depcruise
+      ref: no-common-to-app-layers
+    doc: '02-module-rules.md#모듈-경계-자동-강제-depcheck--dependency-cruiser'
+
+  - id: MOD-006
+    statement: '동기 연결은 Module imports/exports로 하고, 필요한 provider만 export하며, 다른 모듈의 provider를 자기 모듈에 다시 등록하지 않는다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#동기-연결'
+
+  - id: MOD-007
+    statement: '원본 유스케이스의 핵심 write는 서비스에서 끝내고, 알림·파생 동기화·SSE push 같은 후속 작업은 `handler/`로 분리한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#규칙'
+
+  - id: MOD-008
+    statement: '이벤트 페이로드에는 식별자만 담고 엔티티 참조를 넣지 않는다(핸들러는 별도 EntityManager 컨텍스트에서 실행된다).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#레퍼런스-구현-identity'
+
+  - id: MOD-009
+    statement: '이벤트는 핵심 write/커밋 후에 발행하고, 비동기 핸들러는 `@OnEvent(name, { async: true })`와 `RequestContext.create(em, …)`를 필수로 한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#레퍼런스-구현-identity'
+
+  - id: MOD-010
+    statement: '이벤트명은 매직 스트링 금지 — 상수 파일(`<domain>/event/*-event.constant.ts`)에 `<도메인>.<엔티티>.<과거형>` 네임스페이스로 선언한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#레퍼런스-구현-identity'
+
+  - id: MOD-011
+    statement: '순환 참조가 발생하거나 `forwardRef`가 필요해지면 모듈 분리 신호다 — orchestration 서비스를 별도 모듈로 분리한다. 자기 모듈의 핵심 엔티티를 하나도 사용하지 않고 외부 도메인만 조합하는 서비스도 분리 대상이다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '02-module-rules.md#분리가-필요한-신호'
+
+  # ── LAYER: 04-layer-responsibility.md ──
+  - id: LAYER-001
+    statement: 'Controller는 라우팅과 request binding만 담당하고, 응답은 `R.data`/`R.list`/`R.page`/`R.cursorPage`/`R.empty`를 사용한다. 역할이 다르면 public/admin controller를 분리한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#controller'
+
+  - id: LAYER-002
+    statement: 'Controller에서 Repository를 직접 호출하지 않는다. Service를 통해 접근한다.'
+    severity: error
+    enforcement:
+      type: eslint
+      ref: no-restricted-syntax
+    doc: '04-layer-responsibility.md#ai-quick-reference'
+
+  - id: LAYER-003
+    statement: 'Service 입력은 request DTO를 그대로 받거나 서비스 전용 params 타입으로 받는다. controller에서 인라인 객체 리터럴을 조립해 넘기지 않으며, auth 정보 등 DTO에 없는 값은 별도 인자로 분리한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#service-메서드의-입출력-규칙'
+
+  - id: LAYER-004
+    statement: '`@Transactional()` 내부에서 `eventEmitter.emit()`을 호출하지 않는다. DB 작업은 private `@Transactional()` 메서드로 분리하고 이벤트는 트랜잭션 완료 후 발행한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#service'
+
+  - id: LAYER-005
+    statement: '`@Transactional`은 `@mikro-orm/decorators`가 아닌 `@mikro-orm/decorators/legacy`에서 import한다.'
+    severity: error
+    enforcement:
+      type: eslint
+      ref: no-restricted-imports
+    doc: '04-layer-responsibility.md#service'
+
+  - id: LAYER-006
+    statement: '페이지네이션은 repository에서 쿼리 시점에 적용하고(서비스에서 전체 목록 후 잘라내기 금지), 조회 결과 순회 중 for문 안에서 추가 쿼리를 실행하지 않는다(populate·IN·배치 조회로 한 번에).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#repository'
+
+  - id: LAYER-007
+    statement: 'Repository 메서드 파라미터에 인라인 객체 타입(`params: { ... }`)을 사용하지 않는다. Request DTO를 그대로 쓰거나 repository 파일 내 `export interface`로 정의한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#repository-메서드-파라미터-규칙'
+
+  - id: LAYER-008
+    statement: 'soft-deleted 행 포함 조회는 `filters: false` 또는 목적이 드러나는 별도 메서드로 의도를 명시하고, `createQueryBuilder()` 사용 시 `applyFilters()` 호출 또는 `deletedAt` 조건을 직접 추가한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#soft-delete-필터-규칙'
+
+  - id: LAYER-009
+    statement: '엔티티 생성은 `create()` 정적 팩토리, 수정은 명시적 메서드로 캡슐화하고, aggregate 하위 엔티티는 root 메서드를 통해 관리한다. I/O·인가 판단·트랜잭션 경계·이벤트 발행은 엔티티에 두지 않는다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#엔티티-메서드-경계-어디까지-엔티티에-넣나'
+
+  - id: LAYER-010
+    statement: '에러는 반드시 `exception/` 아래 예외 팩토리 상수로 선언해 던진다. `new Error(...)`, `new HttpException(...)` 등 인라인 예외 생성을 금지한다.'
+    severity: error
+    enforcement:
+      type: eslint
+      ref: no-restricted-syntax
+      note: '기계 검출은 HttpException 계열 6종 × service/handler/controller 파일 한정 — `new Error(...)`와 그 외 파일(repository/policy 등)은 리뷰로 보완한다. (core 인프라 코드의 정당한 `new Error` 오탐 방지를 위해 셀렉터 미확장)'
+    doc: '04-layer-responsibility.md#exception'
+
+  - id: LAYER-011
+    statement: '`unwrap()` 사용을 지양한다. PK만 필요하면 `ref.id`, 로딩된 relation의 필드는 `getEntity()`, 조건부 추가 조회만 `load()`를 쓴다.'
+    severity: warn
+    enforcement:
+      type: eslint
+      ref: no-restricted-syntax
+      note: '문서 뉘앙스는 지양(warn)이나, service/handler/controller 파일에서는 예외 셀렉터와 같은 eslint 블록에 묶여 실제로는 error로 발화한다.'
+    doc: '04-layer-responsibility.md#load-getentity-unwrap-사용-기준'
+
+  - id: LAYER-012
+    statement: '요청 스코프 밖 코드(크론 잡, EventEmitter2 핸들러, 부트스트랩)는 반드시 EntityManager를 fork한다(`@CreateRequestContext()` 또는 `RequestContext.create`/`em.fork()`).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#unit-of-work--entitymanager-스코프'
+
+  - id: LAYER-013
+    statement: 'raw SQL은 읽기 전용 조회에만 쓰고 repository 또는 read service에 둔다. 사용자 입력은 반드시 parameterized query로 바인딩하고 문자열 연결을 금지한다(SQL injection). 결과 타입에 `any`를 쓰지 않는다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#raw-sql--복잡-조회-가이드라인'
+
+  - id: LAYER-014
+    statement: '에러는 최대한 책임을 가진 최하위 서비스에서 발생시킨다. 상위 서비스는 하위 서비스가 이미 수행한 검증을 중복 수행하지 않는다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '04-layer-responsibility.md#exception'
+
+  # ── AC: 05-access-control.md ──
+  - id: AC-001
+    statement: '보호 라우트에는 반드시 `@Requires(action, resourceType)`를 선언하고, 인증 불필요 라우트만 `@Public()`을 쓴다. 둘 다 없으면 default-deny로 거부된다(인증만으로 통과하지 않는다).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#새-엔드포인트-체크리스트'
+
+  - id: AC-002
+    statement: '인스턴스 라우트(`:id`)는 반드시 service에서 엔티티 로드 후 `loadAndAuthorize(...)`(또는 `policy.authorize`)를 호출한다. 빠뜨리면 cross-team IDOR가 가능하다. 단, 이 규칙은 역할에 부여된 팀-스코프 리소스(user 등)에 적용된다 — 매트릭스가 어떤 역할에도 capability를 주지 않는 SUPER 전용 구조 리소스(team/role)는 의도적으로 Tier2가 없다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  - id: AC-003
+    statement: 'JWT claim(`teams`/`globalRoles`/`role`)은 반드시 서버 측 DB 상태에서만 채운다. 클라이언트 입력을 토큰/엔티티에 복사하면 즉시 권한 상승이다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  - id: AC-004
+    statement: '`SUPER`(전체 bypass)는 보호된 관리자 출처에서만 부여한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  - id: AC-005
+    statement: '일반 역할에 `team`/`role` capability를 부여하려면 Tier2 백스톱이 없어 cross-team 노출이 생기므로 반드시 `ResourcePolicy`를 함께 추가한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#identity-레퍼런스-매트릭스-modulesidentityaccessidentity-accessmatrixts'
+
+  - id: AC-006
+    statement: '리소스 존재 자체가 민감하고 ID가 추측 가능(순차 정수 등)하면 `loadAndAuthorize`에 `maskNotFound`로 read 인가 실패를 404로 마스킹하고, loader의 미존재 예외와 같은 팩토리를 넘겨 403/404를 구분 불가능하게 한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#tier-2--abac-resourcepolicytentity-소속팀-소유권'
+
+  - id: AC-007
+    statement: '목록 조회는 service에서 actor의 소속팀(들)으로 스코프한다(SUPER는 전체) — cross-team 정보 노출 방지.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#tier-2--abac-resourcepolicytentity-소속팀-소유권'
+
+  - id: AC-008
+    statement: '발급자는 모든 토큰에 `jti`를 넣는다. `jti` 없는 토큰은 blocklist 무효화가 불가하므로 `AuthGuard`가 거부한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  - id: AC-009
+    statement: '`AuthGuard`/`PolicyGuard`는 HTTP 전용이다. WebSocket/microservice 도입 시 전용 가드를 붙인다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  - id: AC-010
+    statement: '권한 회수·팀 추방 시 `AuthService.revokeAllSessions(userId)`를 호출해 기존 access token을 즉시 무효화한다. 미호출 시 최대 AT TTL만큼 권한 변경이 지연된다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '05-access-control.md#보안-주의사항-필수--도메인-구현-시'
+
+  # ── QRY: 10-query-strategy.md ──
+  - id: QRY-001
+    statement: 'write는 반드시 MikroORM(Unit of Work)을 거친다. raw SQL이나 Kysely로 write하지 않는다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#경로별-원칙'
+
+  - id: QRY-002
+    statement: '다중 JOIN·GROUP BY·집계 같은 복잡/대시보드/리포트성 조회는 Kysely 기반 ReadModel(읽기 전용)로 우회할 수 있다. ORM populate로 무리하게 풀지 않는다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#경로별-원칙'
+
+  - id: QRY-003
+    statement: '`Kysely`/`PostgresDialect` 등은 `@mikro-orm/postgresql`에서 import한다. 별도 `kysely` 패키지 설치를 금지한다(인스턴스/타입 불일치 방지).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#커넥션-mikroorm의-kysely-클라이언트를-재사용'
+
+  - id: QRY-004
+    statement: '전역 softDelete 필터는 Kysely에 적용되지 않으므로 Kysely 쿼리에는 `deleted_at IS NULL`을 직접 명시한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#readmodel-작성-규칙'
+
+  - id: QRY-005
+    statement: 'populate 깊이 3 이상은 repository 메서드에서 해당 populate에 `LoadStrategy.SELECT_IN`을 지정하고, cross-domain 리스트는 ORM populate 대신 service에서 ID 배치 조회(`IN`) 후 DTO로 조립한다(N+1 방지).'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#load-strategy-매트릭스'
+
+  - id: QRY-006
+    statement: '모든 `@ManyToOne` FK 컬럼은 EXPLAIN 없이도 기본으로 인덱스를 건다(`index: true`).'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#fk-컬럼은-기본-인덱스-대상-explain-예외'
+
+  - id: QRY-007
+    statement: 'soft delete 대상 엔티티의 유니크 조건은 평범한 `@Unique()` 대신 partial unique index(`WHERE deleted_at IS NULL`)로 마이그레이션에서 명시한다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#soft-delete-엔티티의-unique-제약은-partial로'
+
+  - id: QRY-008
+    statement: '루프에서 단건 `save()` 호출을 금지한다. 여러 건은 `persist`로 모아 `saveAll`(단일 flush) 또는 `upsertMany`를 쓴다.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#대량-연산-bulk--unit-of-work-규율'
+
+  - id: QRY-009
+    statement: 'native 경로(`bulkSoftDelete`/`nativeUpdate`/`nativeDelete`)는 UoW를 우회하므로, 같은 트랜잭션에서 이미 로드한 동일 엔티티를 이후 재사용하지 않거나 `em.refresh()`/재조회로 갱신한다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#대량-연산-bulk--unit-of-work-규율'
+
+  - id: QRY-010
+    statement: 'read-modify-write 경합이나 상태 전이가 치명적인 엔티티는 `VersionedEntity`를 상속해 optimistic lock을 켠다.'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#대량-연산-bulk--unit-of-work-규율'
+
+  - id: QRY-011
+    statement: 'ReadModel/raw 조회의 결과 타입은 명시적으로 선언한다 — `any` 금지.'
+    severity: error
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#경로별-원칙'
+
+  - id: QRY-012
+    statement: '대량 read-only 스캔(익스포트·배치 잡 등)은 `find(..., { disableIdentityMap: true })`로 identity map 축적을 끈다(메모리 누수 방지).'
+    severity: warn
+    enforcement:
+      type: review-only
+    doc: '10-query-strategy.md#대량-연산-bulk--unit-of-work-규율'
+
+# 미추출 문서: 00,01,03,06,07,08,09,11,12 — 추출 트리거: MCP 리뷰 도구가 해당 영역을 커버해야 할 때
