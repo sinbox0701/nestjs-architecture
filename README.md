@@ -46,6 +46,7 @@
 - **default-deny 접근제어** — 역할(Role) capability RBAC + 소속팀 소유권 ABAC, 3-tier.
 - **3경로 쿼리 전략** — 쓰기/단건은 MikroORM, 복잡 조회는 Kysely, 도메인 간 읽기는 ReadService.
 - **기계 강제 컨벤션** — 레이어 경계·마이그레이션 드리프트·lint/format을 사람이 아니라 CI/훅이 막는다.
+- **컨벤션 룰 레지스트리 + guards MCP 서버** — 규범 조항을 산문이 아니라 데이터(`docs/convention/rules.yml`, 룰마다 강제 수단 선언)로 두고, 검증기(depcruise·드리프트 가드)와 함께 MCP 도구로 노출한다(`scripts/mcp/server.mjs`, read-only). AI 리뷰어가 컨벤션을 추측하지 않고 룰 ID로 인용하며, 레지스트리↔설정 드리프트는 `pnpm rules:check`가 막는다.
 - **AI 협업 하네스** — "누가 작업해도 같은 품질"이 나오도록 시스템 프롬프트·스킬·서브에이전트·훅을 구조화.
 
 ---
