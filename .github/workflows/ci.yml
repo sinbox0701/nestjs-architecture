@@ -80,6 +80,12 @@ jobs:
       - name: Module boundary check (dependency-cruiser)
         run: pnpm dep:check
 
+      - name: Rule registry drift check (rules.yml ↔ eslint/depcruise/scripts)
+        run: pnpm rules:check
+
+      - name: Guards MCP server smoke (stdio, all tools)
+        run: pnpm mcp:smoke
+
       - name: Build
         run: pnpm build
 
