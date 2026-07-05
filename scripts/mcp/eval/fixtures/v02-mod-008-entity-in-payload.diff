@@ -1,0 +1,17 @@
+diff --git a/src/modules/identity/event/team-renamed.event.ts b/src/modules/identity/event/team-renamed.event.ts
+--- a/src/modules/identity/event/team-renamed.event.ts
++++ b/src/modules/identity/event/team-renamed.event.ts
+@@ -1,8 +1,9 @@
+ export class TeamRenamedEvent {
+   constructor(
+-    public readonly teamId: number,
++    public readonly team: Team,
++    public readonly renamedBy: User,
+   ) {}
+ }
+diff --git a/src/modules/identity/service/team.service.ts b/src/modules/identity/service/team.service.ts
+--- a/src/modules/identity/service/team.service.ts
++++ b/src/modules/identity/service/team.service.ts
+@@ -52,3 +52,3 @@ export class TeamService {
+-    this.eventEmitter.emit(IdentityEvent.TEAM_RENAMED, new TeamRenamedEvent(team.id));
++    this.eventEmitter.emit(IdentityEvent.TEAM_RENAMED, new TeamRenamedEvent(team, actor.user));

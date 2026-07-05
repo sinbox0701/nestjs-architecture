@@ -1,0 +1,11 @@
+diff --git a/src/modules/identity/controller/team.controller.ts b/src/modules/identity/controller/team.controller.ts
+--- a/src/modules/identity/controller/team.controller.ts
++++ b/src/modules/identity/controller/team.controller.ts
+@@ -48,6 +48,13 @@ export class TeamController {
++  /** 팀 통계 조회. */
++  @Get(':id/stats')
++  @ApiDataResponse(TeamStatsData)
++  async getStats(@CurrentUser() actor: AuthSubject, @Param('id') id: number) {
++    return R.data(await this.service.getTeamStats(actor, id));
++  }
++

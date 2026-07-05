@@ -1,0 +1,10 @@
+diff --git a/src/modules/identity/read-model/user-search.read.service.ts b/src/modules/identity/read-model/user-search.read.service.ts
+--- a/src/modules/identity/read-model/user-search.read.service.ts
++++ b/src/modules/identity/read-model/user-search.read.service.ts
+@@ -18,6 +18,11 @@ export class UserSearchReadService {
++  async searchByEmail(email: string) {
++    return this.em.execute(
++      `SELECT id, email, name FROM "user" WHERE email LIKE '%${email}%' AND deleted_at IS NULL`,
++    );
++  }
++

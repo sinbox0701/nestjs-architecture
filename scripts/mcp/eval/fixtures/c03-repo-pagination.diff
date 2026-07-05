@@ -1,0 +1,13 @@
+diff --git a/src/modules/identity/repository/user.repository.ts b/src/modules/identity/repository/user.repository.ts
+--- a/src/modules/identity/repository/user.repository.ts
++++ b/src/modules/identity/repository/user.repository.ts
+@@ -25,6 +25,14 @@ export class UserRepository {
++  async findPage(teamIds: number[] | undefined, query: GetUserListRequest) {
++    const where = teamIds ? { team: { id: { $in: teamIds } } } : {};
++    const [items, total] = await this.em.findAndCount(User, where, {
++      limit: query.size,
++      offset: (query.page - 1) * query.size,
++      orderBy: { createdAt: 'DESC' },
++    });
++    return { items, total };
++  }

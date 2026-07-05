@@ -1,0 +1,9 @@
+diff --git a/src/modules/identity/service/user.service.ts b/src/modules/identity/service/user.service.ts
+--- a/src/modules/identity/service/user.service.ts
++++ b/src/modules/identity/service/user.service.ts
+@@ -60,6 +60,12 @@ export class UserService {
+   async deactivateUser(actor: AuthSubject, id: number): Promise<void> {
+     const user = await this.loadAndAuthorize(actor, id, Action.UPDATE);
+     await this.persistDeactivation(user);
++    this.eventEmitter.emit('identity.user.deactivated', new UserDeactivatedEvent(user.id));
+   }

@@ -1,0 +1,16 @@
+diff --git a/src/modules/identity/controller/user.controller.ts b/src/modules/identity/controller/user.controller.ts
+--- a/src/modules/identity/controller/user.controller.ts
++++ b/src/modules/identity/controller/user.controller.ts
+@@ -30,6 +30,17 @@ export class UserController {
++  @Requires(Action.READ, 'user')
++  @Get('summary')
++  async getSummary(@CurrentUser() actor: AuthSubject, @Query() query: GetUserListRequest) {
++    const page = await this.service.getUserList(actor, query);
++    const active = page.items.filter((u) => u.isActive);
++    return {
++      activeCount: active.length,
++      inactiveCount: page.total - active.length,
++      users: active.map((u) => ({ id: u.id, label: `${u.name} <${u.email}>` })),
++    };
++  }
++

@@ -1,0 +1,8 @@
+diff --git a/src/modules/identity/service/user.service.ts b/src/modules/identity/service/user.service.ts
+--- a/src/modules/identity/service/user.service.ts
++++ b/src/modules/identity/service/user.service.ts
+@@ -70,6 +70,10 @@ export class UserService {
++  async bulkDeactivate(userIds: number[]): Promise<void> {
++    await this.em.execute('UPDATE "user" SET is_active = false WHERE id = ANY(?)', [userIds]);
++  }
++

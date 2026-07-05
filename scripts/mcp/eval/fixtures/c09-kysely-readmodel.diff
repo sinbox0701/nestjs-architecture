@@ -1,0 +1,22 @@
+diff --git a/src/modules/identity/read-model/team-dashboard.read.service.ts b/src/modules/identity/read-model/team-dashboard.read.service.ts
+--- a/src/modules/identity/read-model/team-dashboard.read.service.ts
++++ b/src/modules/identity/read-model/team-dashboard.read.service.ts
+@@ -0,0 +1,16 @@
++import { Injectable } from '@nestjs/common';
++import { Kysely } from '@mikro-orm/postgresql';
++
++/** 팀 대시보드 집계 조회 (읽기 전용 ReadModel — 다중 JOIN·GROUP BY는 Kysely로 우회). */
++@Injectable()
++export class TeamDashboardReadService {
++  constructor(private readonly db: Kysely<Database>) {}
++
++  async countMembersByTeam(teamIds: number[]) {
++    return this.db
++      .selectFrom('user')
++      .select(['team_id', (eb) => eb.fn.count('id').as('member_count')])
++      .where('team_id', 'in', teamIds)
++      .where('deleted_at', 'is', null)
++      .groupBy('team_id')
++      .execute();
++  }
++}

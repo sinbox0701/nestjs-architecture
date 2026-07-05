@@ -1,0 +1,10 @@
+diff --git a/src/modules/identity/service/role.service.ts b/src/modules/identity/service/role.service.ts
+--- a/src/modules/identity/service/role.service.ts
++++ b/src/modules/identity/service/role.service.ts
+@@ -20,6 +20,12 @@ export class RoleService {
++  async createRole(actor: AuthSubject, request: CreateRoleRequest): Promise<Role> {
++    await this.policy.authorize(actor, Action.CREATE, 'role');
++    const role = Role.create(request.name, request.capabilities);
++    await this.em.persistAndFlush(role);
++    return role;
++  }

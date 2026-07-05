@@ -1,0 +1,14 @@
+diff --git a/src/modules/identity/entity/team.entity.ts b/src/modules/identity/entity/team.entity.ts
+--- a/src/modules/identity/entity/team.entity.ts
++++ b/src/modules/identity/entity/team.entity.ts
+@@ -30,6 +30,15 @@ export class Team extends BaseEntity {
++  static create(name: string, description?: string): Team {
++    const team = new Team();
++    team.name = name;
++    team.description = description ?? null;
++    return team;
++  }
++
++  rename(name: string): void {
++    this.name = name;
++  }

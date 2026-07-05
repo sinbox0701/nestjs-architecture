@@ -1,0 +1,50 @@
+# review_diff eval 정답지 — fixtures/*.diff ↔ 기대 룰 ID 매핑.
+#
+# expect: 반드시 잡아야 하는 위반 (못 잡으면 FN)
+# accept: 잡아도 오탐(FP)으로 세지 않는 인접 룰 — 하나의 코드가 규범 두 개에 동시에 걸리는
+#         정당한 중복만 등재한다 (예: @Transactional 내부 emit은 LAYER-004와 MOD-009 둘 다 위반).
+# 클린 픽스처는 expect: [] — 여기서 나오는 모든 finding이 오탐이다.
+cases:
+  # ── 위반 심은 diff ──────────────────────────────
+  - fixture: v01-layer-004-emit-in-transaction.diff
+    expect: [LAYER-004]
+    accept: [MOD-009]
+  - fixture: v02-mod-008-entity-in-payload.diff
+    expect: [MOD-008]
+  - fixture: v03-mod-010-magic-event-name.diff
+    expect: [MOD-010]
+  - fixture: v04-layer-006-slice-pagination.diff
+    expect: [LAYER-006]
+  - fixture: v05-qry-001-raw-sql-write.diff
+    expect: [QRY-001]
+  - fixture: v06-ac-001-unguarded-route.diff
+    expect: [AC-001]
+  - fixture: v07-layer-013-sql-interpolation.diff
+    expect: [LAYER-013]
+  - fixture: v08-ac-007-unscoped-list.diff
+    expect: [AC-007]
+  - fixture: v09-layer-012-handler-no-fork.diff
+    expect: [LAYER-012]
+  - fixture: v10-layer-001-controller-logic.diff
+    expect: [LAYER-001]
+  # ── 클린 diff (규범 준수 — finding이 나오면 전부 오탐) ──
+  - fixture: c01-emit-after-commit.diff
+    expect: []
+  - fixture: c02-guarded-route.diff
+    expect: []
+  - fixture: c03-repo-pagination.diff
+    expect: []
+  - fixture: c04-parameterized-read-sql.diff
+    expect: []
+  - fixture: c05-service-params-type.diff
+    expect: []
+  - fixture: c06-entity-factory.diff
+    expect: []
+  - fixture: c07-handler-with-context.diff
+    expect: []
+  - fixture: c08-scoped-list.diff
+    expect: []
+  - fixture: c09-kysely-readmodel.diff
+    expect: []
+  - fixture: c10-public-health-route.diff
+    expect: []

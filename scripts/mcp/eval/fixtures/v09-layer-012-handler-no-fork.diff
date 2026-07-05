@@ -1,0 +1,11 @@
+diff --git a/src/modules/identity/handler/user-created.handler.ts b/src/modules/identity/handler/user-created.handler.ts
+--- a/src/modules/identity/handler/user-created.handler.ts
++++ b/src/modules/identity/handler/user-created.handler.ts
+@@ -12,6 +12,13 @@ export class UserCreatedHandler {
++  @OnEvent(IdentityEvent.USER_CREATED, { async: true })
++  async syncDefaultRole(event: UserCreatedEvent): Promise<void> {
++    const user = await this.em.findOneOrFail(User, event.userId);
++    user.assignDefaultRole();
++    await this.em.flush();
++  }
++

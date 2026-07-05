@@ -1,0 +1,8 @@
+diff --git a/src/modules/identity/service/team.service.ts b/src/modules/identity/service/team.service.ts
+--- a/src/modules/identity/service/team.service.ts
++++ b/src/modules/identity/service/team.service.ts
+@@ -28,6 +28,11 @@ export class TeamService {
++  async getTeamList(actor: AuthSubject, query: GetTeamListRequest) {
++    const teamIds = actor.isSuper ? undefined : actor.teamIds;
++    return this.teamRepository.findPage(teamIds, query);
++  }

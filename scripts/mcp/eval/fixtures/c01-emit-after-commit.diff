@@ -1,0 +1,17 @@
+diff --git a/src/modules/identity/service/team.service.ts b/src/modules/identity/service/team.service.ts
+--- a/src/modules/identity/service/team.service.ts
++++ b/src/modules/identity/service/team.service.ts
+@@ -41,6 +41,17 @@ export class TeamService {
++  @Transactional()
++  private async persistTeamRename(team: Team, name: string): Promise<Team> {
++    team.rename(name);
++    await this.em.flush();
++    return team;
++  }
++
+   async renameTeam(actor: AuthSubject, id: number, name: string): Promise<Team> {
+     const team = await this.loadAndAuthorize(actor, id, Action.UPDATE);
++    const renamed = await this.persistTeamRename(team, name);
++    this.eventEmitter.emit(IdentityEvent.TEAM_RENAMED, new TeamRenamedEvent(renamed.id));
++    return renamed;
+   }
