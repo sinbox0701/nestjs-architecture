@@ -433,11 +433,22 @@ AI(에이전트)가 팀원처럼 일하도록 모델을 감싸는 실행 환경.
 | `pnpm format`           | Prettier 포맷팅                       |
 | `pnpm format:check`     | Prettier 포맷 검사 (CI용)             |
 | `pnpm dep:check`        | 레이어 경계 검사 (dependency-cruiser) |
+| `pnpm doc:check`        | 컨벤션 문서 참조 정합성 검사          |
+| `pnpm config:check`     | 설정 정합성 검사                      |
+| `pnpm rules:check`      | 룰 레지스트리↔설정 드리프트 검사      |
 | `pnpm test`             | 단위 테스트 (DB 불필요)               |
 | `pnpm test:watch`       | 단위 테스트 watch 모드                |
 | `pnpm test:cov`         | 테스트 커버리지 리포트                |
 | `pnpm test:integration` | 통합 테스트 (실제 DB, 순차 실행)      |
 | `pnpm test:e2e`         | E2E 테스트 (앱 부팅, 순차 실행)       |
+
+### guards MCP (AI 리뷰 도구)
+
+| 스크립트         | 설명                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `pnpm mcp:serve` | guards MCP 서버 실행 (stdio, `.mcp.json` 등록용)                                    |
+| `pnpm mcp:smoke` | 전 도구(8종) 스모크 — 키 불필요, CI에서 실행                                        |
+| `pnpm mcp:eval`  | `review_diff` 심사 품질 측정 (픽스처 20종 precision/recall, ANTHROPIC_API_KEY 필요) |
 
 ### 로컬 인프라 (Docker)
 
