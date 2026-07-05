@@ -11,6 +11,8 @@
  *   - 검증 로직 재구현 금지: 기존 가드를 자식 프로세스로 래핑만 한다(단일 진실 소스 유지).
  *   - 입력은 zod로 검증하고, 파일 조회는 docs/convention/ 밖을 가리킬 수 없다(경로 이탈 차단).
  *   - 응답은 envelope(JSON text)로: { ok, ... } — 위반 발견은 에러가 아니라 정상 결과다.
+ *   - 결정적/비결정적 계층 분리: eslint·depcruise·script로 잡히는 룰은 check_*가 처리하고,
+ *     LLM(review_diff)은 enforcement=review-only 층만 심사한다(lib/llm.mjs 참조).
  *
  * 등록: .mcp.json (템플릿: .mcp.json.example) → 실행: pnpm mcp:serve (stdio, 단독 실행 시 입력 대기)
  */
@@ -23,6 +25,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 import { run } from './lib/exec.mjs';
+import { hasApiKey, reviewDiffCore, LLM_MODEL } from './lib/llm.mjs';
 import { loadRules, refsOf, depcruiseRefIndex, REGISTRY_PATH } from './lib/registry.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -185,6 +188,49 @@ server.registerTool(
   async () => {
     const r = await run('node', ['scripts/check-registry-drift.mjs'], { cwd: ROOT });
     return json({ ok: r.exitCode === 0, output: (r.stdout + r.stderr).trim() });
+  },
+);
+
+// ── LLM 심사 (review-only 층 전용) ────────────────────────────────────────────
+
+server.registerTool(
+  'review_diff',
+  {
+    title: 'LLM 컨벤션 심사 (review-only 룰)',
+    description:
+      '기계 강제가 불가능한 룰(enforcement=review-only)에 대해 git diff를 Claude API로 심사한다. ' +
+      '모든 finding은 룰 ID에 귀속되며, 레지스트리에 없는 ID는 ungrounded로 격리된다. ' +
+      'ANTHROPIC_API_KEY가 없으면 호출 없이 skipped를 반환한다(결정적 check_* 도구는 영향 없음).',
+    inputSchema: {
+      base: z
+        .string()
+        .regex(/^[\w./-]{1,100}$/)
+        .optional()
+        .describe('비교 기준 ref (예: origin/main). 미지정 시 스테이징(diff --cached) 기준.'),
+      prefix: z
+        .string()
+        .regex(/^[A-Z]{2,8}$/)
+        .optional()
+        .describe('심사 룰 접두사 제한 (MOD|LAYER|AC|QRY) — 토큰 절약용'),
+    },
+  },
+  async ({ base, prefix }) => {
+    if (!hasApiKey()) {
+      return json({ ok: false, skipped: true, reason: 'ANTHROPIC_API_KEY 미설정 — review_diff만 스킵됨' });
+    }
+    const diffArgs = base ? ['diff', `${base}...HEAD`, '--unified=3'] : ['diff', '--cached', '--unified=3'];
+    const r = await run('git', [...diffArgs, '--', 'src', 'tests'], { cwd: ROOT });
+    if (r.exitCode !== 0) return fail(`git diff 실패: ${r.stderr.slice(0, 300)}`);
+
+    const rules = loadRules(ROOT)
+      .filter((rule) => rule.enforcement?.type === 'review-only')
+      .filter((rule) => !prefix || rule.id.startsWith(`${prefix}-`));
+    try {
+      const result = await reviewDiffCore({ diff: r.stdout, rules });
+      return json({ ok: result.findings.length === 0, ...result });
+    } catch (error) {
+      return fail(`LLM 심사 실패: ${error.message}`);
+    }
   },
 );
 

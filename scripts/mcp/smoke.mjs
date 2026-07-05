@@ -63,5 +63,32 @@ for (const [name, args] of calls) {
 }
 
 await client.close();
+
+// review_diff 우아한 스킵 경로 — 키를 제거한 서버 인스턴스에서 skipped 신호를 검증한다.
+// (외부 환경에 키가 있든 없든 이 검증은 결정적이다. 실 호출 품질은 mcp:eval이 잰다.)
+{
+  const { ANTHROPIC_API_KEY: _stripped, ...envWithoutKey } = process.env;
+  const noKeyClient = new Client({ name: 'guards-smoke-nokey', version: '0.0.0' });
+  await noKeyClient.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [join(ROOT, 'scripts', 'mcp', 'server.mjs')],
+      cwd: ROOT,
+      env: envWithoutKey,
+    }),
+  );
+  const res = await noKeyClient.callTool({ name: 'review_diff', arguments: {} });
+  let payload = {};
+  try {
+    payload = JSON.parse(res.content?.[0]?.text ?? '{}');
+  } catch {
+    /* 아래 검증에서 실패로 잡힌다 */
+  }
+  const graceful = !res.isError && payload.ok === false && payload.skipped === true;
+  if (!graceful) failed += 1;
+  process.stdout.write(`${graceful ? '✓' : '✖'} review_diff(키 없음) → ${payload.reason ?? '(예상 밖 응답)'}\n`);
+  await noKeyClient.close();
+}
+
 process.stdout.write(failed === 0 ? '\n스모크 통과\n' : `\n실패 ${failed}건\n`);
 process.exit(failed === 0 ? 0 : 1);

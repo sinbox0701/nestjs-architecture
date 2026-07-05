@@ -43,6 +43,7 @@
     "rules:check": "node scripts/check-registry-drift.mjs",
     "mcp:serve": "node scripts/mcp/server.mjs",
     "mcp:smoke": "node scripts/mcp/smoke.mjs",
+    "mcp:eval": "node scripts/mcp/eval.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -107,6 +108,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.4.0",
     "@mikro-orm/cli": "^7.0.7",
